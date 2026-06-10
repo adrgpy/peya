@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de Casos Peya</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f4f4f4; color: #222; }
+  header { background: #ff6900; color: white; padding: 16px 24px; }
+  header h1 { font-size: 20px; font-weight: 700; }
+  header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
+  .nav { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 24px; }
+  .nav button { font-size: 12px; padding: 6px 12px; border: 1.5px solid #ccc; border-radius: 20px; background: white; color: #444; cursor: pointer; transition: all 0.15s; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  .nav button:hover { border-color: #ff6900; color: #ff6900; }
+  .nav button.active { background: #ff6900; color: white; border-color: #ff6900; font-weight: 600; }
+  .edit-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .btn-edit-mode { font-size: 11px; padding: 5px 12px; border: 1.5px solid #aaa; border-radius: 20px; background: white; color: #555; cursor: pointer; transition: all 0.15s; }
+  .btn-edit-mode:hover { border-color: #ff6900; color: #ff6900; }
+  .btn-edit-mode.on { background: #fff3e0; border-color: #ff6900; color: #c2410c; font-weight: 700; }
+  .edit-hint { font-size: 11px; color: #aaa; display: none; }
+  .edit-hint.visible { display: inline; }
+  .btn-reset-order { font-size: 11px; padding: 5px 12px; border: 1.5px solid #ddd; border-radius: 20px; background: white; color: #888; cursor: pointer; display: none; transition: all 0.15s; }
+  .btn-reset-order.visible { display: inline-block; }
+  .btn-reset-order:hover { border-color: #e11d48; color: #e11d48; }
+  .btn-add-nav { font-size: 11px; padding: 5px 12px; border: 1.5px solid #10b981; border-radius: 20px; background: #f0fdf4; color: #065f46; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+  .btn-add-nav:hover { background: #d1fae5; border-color: #059669; }
+  .nav.edit-mode button { cursor: grab; border-style: dashed; }
+  .nav.edit-mode button:active { cursor: grabbing; }
+  .nav button.dragging { opacity: 0.35; transform: scale(0.95); }
+  .nav button.drag-over { border-color: #ff6900 !important; background: #fff3e0 !important; transform: scale(1.05); box-shadow: 0 0 0 2px #ff690044; }
+  .section { display: none; }
+  .nav button.nav-currier { background: #eff6ff; border-color: #93c5fd; color: #1d4ed8; }
+  .nav button.nav-currier:hover { background: #dbeafe; border-color: #2563eb; }
+  .nav button.nav-nocurrier { background: #ecfdf5; border-color: #86efac; color: #15803d; }
+  .nav button.nav-nocurrier:hover { background: #dcfce7; border-color: #16a34a; }
+  .nav button.nav-ambos { background: #fff7ed; border-color: #fdba74; color: #c2410c; }
+  .nav button.nav-ambos:hover { background: #ffedd5; border-color: #ea580c; }
+  .nav button.nav-b2c { background: #f5f3ff; border-color: #c4b5fd; color: #7c3aed; }
+  .nav button.nav-b2c:hover { background: #ede9fe; border-color: #7c3aed; }
+  .nav button.nav-custom { background: #fdf4ff; border-color: #d8b4fe; color: #7e22ce; }
+  .nav button.nav-custom:hover { background: #f3e8ff; border-color: #a855f7; }
+  .nav button.active { background: #ff6900 !important; color: white !important; border-color: #ff6900 !important; }
+  .section.visible { display: block; }
+  .section-title { font-size: 17px; font-weight: 700; color: #ff6900; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #ff6900; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 10px; margin-bottom: 12px; }
+  .badge-currier { background: #dbeafe; color: #1d4ed8; }
+  .badge-nocurrier { background: #dcfce7; color: #15803d; }
+  .badge-ambos { background: #fef3c7; color: #92400e; }
+  .badge-b2c { background: #ede9fe; color: #6d28d9; }
+  .badge-custom { background: #f3e8ff; color: #7e22ce; }
+  .group-label { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin: 16px 0 8px; }
+  .case-block { background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; position: relative; touch-action: manipulation; }
+  .case-block:hover { border-color: #ff6900; box-shadow: 0 0 0 2px #ff690022; }
+  .case-text { font-size: 13px; color: #333; font-family: monospace; line-height: 1.6; word-break: break-word; }
+  .copy-tag { position: absolute; top: 8px; right: 10px; font-size: 11px; color: #bbb; opacity: 0; transition: opacity 0.15s; }
+  .case-block:hover .copy-tag { opacity: 1; }
+  .copied-msg { position: absolute; top: 8px; right: 10px; font-size: 11px; color: #15803d; font-weight: 600; display: none; }
+  .case-notes-area { margin-top: 8px; border-top: 1px dashed #e5e7eb; padding-top: 8px; display: none; }
+  .case-block.has-notes .case-notes-area { display: block; }
+  .case-note-item { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 10px; margin-bottom: 5px; font-size: 12px; color: #92400e; display: flex; align-items: flex-start; gap: 6px; }
+  .case-note-text { flex: 1; white-space: pre-wrap; word-break: break-word; }
+  .case-note-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .btn-note-edit, .btn-note-del { font-size: 10px; border: none; background: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: background 0.1s; }
+  .btn-note-edit { color: #2563eb; }
+  .btn-note-edit:hover { background: #dbeafe; }
+  .btn-note-del { color: #dc2626; }
+  .btn-note-del:hover { background: #fee2e2; }
+  .btn-add-case-note { font-size: 11px; margin-top: 4px; padding: 3px 8px; border: 1px dashed #d97706; border-radius: 6px; background: none; color: #b45309; cursor: pointer; transition: background 0.1s; }
+  .btn-add-case-note:hover { background: #fef3c7; }
+  .case-note-add-bar { display: none; margin-top: 5px; }
+  .case-note-add-bar.visible { display: flex; gap: 5px; flex-wrap: wrap; }
+  .case-note-input { flex: 1; min-width: 120px; font-size: 12px; padding: 4px 8px; border: 1px solid #d97706; border-radius: 6px; outline: none; font-family: Arial, sans-serif; }
+  .btn-note-save, .btn-note-cancel { font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer; border: none; }
+  .btn-note-save { background: #d97706; color: white; }
+  .btn-note-save:hover { background: #b45309; }
+  .btn-note-cancel { background: #f3f4f6; color: #555; }
+  .btn-note-cancel:hover { background: #e5e7eb; }
+  .info-note { background: #fff8f0; border: 1.5px solid #ffcfa0; border-left: 4px solid #ff6900; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: #555; line-height: 1.6; }
+  .info-note strong { color: #c2440a; display: block; margin-bottom: 5px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .info-note p { margin-bottom: 6px; white-space: pre-line; }
+  .flow-guide { background: #ffffff; border: 1.5px solid #d1fae5; border-left: 5px solid #10b981; border-radius: 10px; padding: 12px 14px; margin: 12px 0 16px; box-shadow: 0 2px 8px #00000008; }
+  .flow-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+  .flow-title { font-size: 13px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: .04em; }
+  .flow-pill { font-size: 11px; font-weight: 700; color: #065f46; background: #d1fae5; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+  .btn-edit-flow { font-size: 11px; padding: 3px 9px; border: 1px solid #6ee7b7; border-radius: 999px; background: white; color: #047857; cursor: pointer; transition: background 0.1s; white-space: nowrap; }
+  .btn-edit-flow:hover { background: #d1fae5; }
+  .flow-steps { display: grid; gap: 7px; }
+  .flow-step { display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: start; font-size: 12.5px; line-height: 1.45; color: #374151; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px; }
+  .flow-num { width: 22px; height: 22px; border-radius: 50%; background: #ff6900; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+  .flow-step strong { color: #111827; }
+  .flow-editor { display: none; margin-top: 10px; }
+  .flow-editor.visible { display: block; }
+  .flow-step-edit { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 6px; }
+  .flow-step-edit textarea { flex: 1; font-size: 12px; padding: 5px 8px; border: 1px solid #6ee7b7; border-radius: 6px; resize: vertical; min-height: 38px; font-family: Arial, sans-serif; outline: none; }
+  .flow-step-edit textarea:focus { border-color: #10b981; }
+  .btn-del-step { font-size: 11px; padding: 4px 8px; border: 1px solid #fca5a5; border-radius: 6px; background: #fff5f5; color: #dc2626; cursor: pointer; flex-shrink: 0; }
+  .btn-del-step:hover { background: #fee2e2; }
+  .btn-add-step { font-size: 11px; padding: 5px 12px; border: 1px dashed #6ee7b7; border-radius: 6px; background: #f0fdf4; color: #065f46; cursor: pointer; margin-top: 4px; }
+  .btn-add-step:hover { background: #d1fae5; }
+  .flow-editor-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .btn-save-flow { font-size: 12px; padding: 6px 14px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+  .btn-save-flow:hover { background: #059669; }
+  .btn-cancel-flow { font-size: 12px; padding: 6px 14px; background: #f3f4f6; color: #555; border: none; border-radius: 6px; cursor: pointer; }
+  .btn-cancel-flow:hover { background: #e5e7eb; }
+  .case-edit-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .btn-case-edit { font-size: 11px; padding: 5px 12px; border: 1.5px solid #aaa; border-radius: 20px; background: white; color: #555; cursor: pointer; transition: all 0.15s; }
+  .btn-case-edit:hover { border-color: #ff6900; color: #ff6900; }
+  .btn-case-edit.on { background: #fff3e0; border-color: #ff6900; color: #c2410c; font-weight: 700; }
+  .btn-case-reset { font-size: 11px; padding: 5px 12px; border: 1.5px solid #ddd; border-radius: 20px; background: white; color: #888; cursor: pointer; display: none; transition: all 0.15s; }
+  .btn-case-reset.visible { display: inline-block; }
+  .btn-case-reset:hover { border-color: #e11d48; color: #e11d48; }
+  .btn-add-case { font-size: 11px; padding: 5px 12px; border: 1.5px solid #10b981; border-radius: 20px; background: #f0fdf4; color: #065f46; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+  .btn-add-case:hover { background: #d1fae5; }
+  .btn-del-section { font-size: 11px; padding: 5px 12px; border: 1.5px solid #fca5a5; border-radius: 20px; background: #fff5f5; color: #dc2626; cursor: pointer; transition: all 0.15s; display: none; }
+  .btn-del-section.visible { display: inline-block; }
+  .btn-del-section:hover { background: #fee2e2; border-color: #dc2626; }
+  .case-edit-hint { font-size: 11px; color: #aaa; display: none; }
+  .case-edit-hint.visible { display: inline; }
+  .section.case-edit-mode .case-block { cursor: grab; border-style: dashed; border-color: #d1d5db; user-select: none; -webkit-user-select: none; }
+  .section.case-edit-mode .case-block:active { cursor: grabbing; }
+  .case-block.case-dragging { opacity: 0.3; transform: scale(0.97); }
+  .case-block.case-drag-over { border-color: #ff6900 !important; background: #fff3e0 !important; transform: scale(1.02); box-shadow: 0 0 0 2px #ff690044; border-style: solid !important; }
+  .case-block-actions { display: none; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .section.case-edit-mode .case-block-actions { display: flex; }
+  .btn-case-del { font-size: 10px; padding: 3px 8px; border: 1px solid #fca5a5; border-radius: 6px; background: #fff5f5; color: #dc2626; cursor: pointer; }
+  .btn-case-del:hover { background: #fee2e2; }
+  .btn-case-edit-text { font-size: 10px; padding: 3px 8px; border: 1px solid #93c5fd; border-radius: 6px; background: #eff6ff; color: #1d4ed8; cursor: pointer; }
+  .btn-case-edit-text:hover { background: #dbeafe; }
+  .add-case-form { background: #f0fdf4; border: 1.5px solid #6ee7b7; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: none; }
+  .add-case-form.visible { display: block; }
+  .add-case-form label { font-size: 12px; font-weight: 600; color: #065f46; display: block; margin-bottom: 5px; }
+  .add-case-form textarea { width: 100%; font-size: 12px; font-family: monospace; padding: 7px 10px; border: 1px solid #6ee7b7; border-radius: 6px; resize: vertical; min-height: 60px; outline: none; }
+  .add-case-form-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .btn-save-case { font-size: 12px; padding: 5px 14px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer; }
+  .btn-save-case:hover { background: #059669; }
+  .btn-cancel-case { font-size: 12px; padding: 5px 14px; background: #f3f4f6; color: #555; border: none; border-radius: 6px; cursor: pointer; }
+  .btn-cancel-case:hover { background: #e5e7eb; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: #00000066; z-index: 9998; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.visible { display: flex; }
+  .modal { background: white; border-radius: 12px; padding: 20px 22px; max-width: 560px; width: 100%; box-shadow: 0 10px 40px #0003; max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-size: 15px; font-weight: 700; color: #111; margin-bottom: 14px; }
+  .modal label { font-size: 12px; font-weight: 600; color: #555; display: block; margin-bottom: 4px; margin-top: 12px; }
+  .modal input, .modal textarea, .modal select { width: 100%; font-size: 13px; padding: 8px 10px; border: 1.5px solid #d1d5db; border-radius: 8px; outline: none; font-family: Arial, sans-serif; }
+  .modal input:focus, .modal textarea:focus, .modal select:focus { border-color: #ff6900; }
+  .modal textarea { resize: vertical; min-height: 80px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; flex-wrap: wrap; }
+  .btn-modal-save { padding: 8px 18px; background: #ff6900; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .btn-modal-save:hover { background: #ea580c; }
+  .btn-modal-cancel { padding: 8px 18px; background: #f3f4f6; color: #555; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .btn-modal-cancel:hover { background: #e5e7eb; }
+  .btn-edit-section { font-size:11px; padding:5px 12px; border:1.5px solid #93c5fd; border-radius:20px; background:#eff6ff; color:#1d4ed8; cursor:pointer; transition: all 0.15s; }
+  .btn-edit-section:hover { background: #dbeafe; }
+  .section-action-bar { display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+
+<!-- Modal agregar/editar sección -->
+<div class="modal-overlay" id="modalSection">
+  <div class="modal">
+    <div class="modal-title" id="modalSectionTitle">➕ Agregar nuevo caso</div>
+    <label>Nombre del botón / sección</label>
+    <input type="text" id="modalSectionLabel" placeholder="Ej: Pedido bloqueado por sistema">
+    <label>Tipo</label>
+    <select id="modalSectionBadge">
+      <option value="nocurrier">No currier</option>
+      <option value="currier">Currier</option>
+      <option value="ambos">Currier & No currier</option>
+      <option value="b2c">B2C</option>
+      <option value="custom">Personalizado</option>
+    </select>
+    <label>Nota especial (opcional)</label>
+    <textarea id="modalSectionNotas" placeholder="Agregar nota que aparece arriba de los casos..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" id="btnModalSectionCancel">Cancelar</button>
+      <button class="btn-modal-save" id="btnModalSectionSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar texto de caso -->
+<div class="modal-overlay" id="modalCaseEdit">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar caso</div>
+    <label>Texto del caso</label>
+    <textarea id="modalCaseText" rows="4" placeholder="xxx//rider indica...//RS"></textarea>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" id="btnModalCaseCancel">Cancelar</button>
+      <button class="btn-modal-save" id="btnModalCaseSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar nota -->
+<div class="modal-overlay" id="modalNoteEdit">
+  <div class="modal">
+    <div class="modal-title">📝 Editar nota</div>
+    <label>Texto de la nota</label>
+    <textarea id="modalNoteText" rows="3" placeholder="Tu nota personal..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" id="btnModalNoteCancel">Cancelar</button>
+      <button class="btn-modal-save" id="btnModalNoteSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <h1>📦 Guía de Casos Peya</h1>
+</header>
+
+<div class="container">
+  <div class="edit-bar">
+    <button class="btn-edit-mode" id="btnEditMode">✏️ Reordenar botones</button>
+    <button class="btn-add-nav" id="btnAddNav">＋ Nuevo caso</button>
+    <span class="edit-hint" id="editHint">Arrastrá o mantenés presionado para mover · El orden se guarda automáticamente</span>
+    <button class="btn-reset-order" id="btnReset">↺ Restablecer orden</button>
+  </div>
+  <div class="nav" id="nav"></div>
+  <div id="content"></div>
+</div>
+
+<script>
+const categoriasBase = [
+  { id: "gran-tamaño", label: "Orden de gran tamaño", badge: "ambos", grupos: [
+    { label: "No currier", items: [
+      "xxx//rider indica pedido de gran tamaño//vehículo del rider motocicleta//tiene más de 4 ítems//divido el pedido//informo al rider//RS",
+      "xxx//rider indica pedido de gran tamaño//vehículo del rider motocicleta//tiene otros pedidos levantados//divido el pedido//informo al rider//RS",
+      "//pedido de gran tamaño//vehículo del rider motocicleta//excede el peso necesario//divido el pedido//RS",
+      "//pedido de gran tamaño//rider no quiere seguir//envío solución//RS",
+      "xxx//rider indica pedido de gran tamaño//vehículo del rider es auto//envió solución \"DimensionesOk\"//no divido el pedido//RS",
+      "xxx//orden de gran tamaño//menos de 4 ítems//envió solución \"DimensionesOk\"//no divido//RS",
+      "// indica pedido de gran tamaño // no es auto // tiene más de 4 productos // divido pedido // informo al rider // RS",
+      "// indica pedido de gran tamaño // no es auto // tiene más de 4 productos // NO quiere dividir el pedido // envío solución // informo al rider // RS",
+      "//rider indica pedido de gran tamaño//valido que el volumen amerita otro rider//divido la pedido por Big order/split order//RS",
+      "//rider indica pedido de gran tamaño//verifico ya no está en el local//informo//no divido//RS",
+    ]},
+    { label: "Currier", items: [
+      "xxx//pedido de gran tamaño//rider near pickup//currier//no es contacto de otro rider//no tiene otros pedidos levantados//envió solución \"TamañoOK\"//RS",
+      "xxx//pedido de gran tamaño//rider near pickup//currier//no es contacto de otro rider//tiene otros pedidos levantados//reasigno pedido//RS",
+      "//pedido de gran tamaño//currier//segundo contacto//rechazo el pedido//RS",
+      "//pedido de gran tamaño//currier//no es recontacto//tiene otro pedido levantado//reasigno//RS",
+    ]},
+  ]},
+
+  { id: "espera-rider", label: "Consulta por compañero de entrega en órdenes divididas", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//consulta por el otro rider//rider indica que puede llevarse el pedido solo//el otro rider no está near pickup//procedo a quitar el pedido del otro rider//RS",
+      "xxx//consulta por el otro rider//rider indica que puede llevar el pedido solo//el otro rider near pickup//solicito que aguarde al otro rider//RS",
+      "//indica que puede llevarse solo el pedido//el otro rider en near pickup//informo que no se puede//RS",
+      "xxx//consulta por el otro rider//solicita ser primario//el otro rider no está near pickup//acciono//RS",
+      "xxx//rider solicita ser secundario//acciono//RS",
+    ]},
+  ]},
+
+  { id: "prod-no-disp", label: "Producto no disponible", badge: "nocurrier", notas: "<strong>Comentario Especial:</strong> Cuando no se puede gestionar porque el local no puede cancelar el pedido por falta de producto:\n\n<i>\"Entiendo lo que me comentas y comprendo la molestia que presentas. De igual forma, quiero recordarte que en las situaciones en que nosotros no podamos reasignar un pedido por el motivo presentado, tendrás la posibilidad de realizarlo desde tu aplicación, siguiendo los pasos que fueron compartidos anteriormente; lamento no poder darte otra respuesta.\"</i>", grupos: [
+    { label: "No currier", items: [
+      "xxx//rider en near pickup//rider indica producto faltante//local no preparará el pedido//envió solución \"/On_PU_Soporte\"//RS",
+      "xxx//rider en near pickup//rider indica faltante de producto//local preparará el pedido//envió solución \"/On_PU_FaltanteEnvío\"//RS",
+      "xxx//rider no está en near pickup//indica faltante de producto//indico que se dirija al pickup//RS",
+      "//Rider indica producto no disponible//Partner no preparará el pedido//Envío solución/On_PU_Soporte//RS",
+    ]},
+    { label: "B2C", items: [
+      "//faltante de producto//b2c//no es recontacto//local incontactable//envío solución /On_PU_ConsultaFaltante//local no enviará//envío solución /On_PU_SoporteLocal//RS",
+      "//faltante de producto//b2c//segundo contacto//rechazo pedido//RS",
+    ]},
+  ]},
+
+  { id: "faltante-caja", label: "Problemas con el pago → Caja insuficiente", badge: "nocurrier", notas: "<strong>Comentario Especial:</strong> Cliente quiere pagar con otro método de pago del pedido:\n\n<strong>Opción 1: Ayuda en línea (dentro de la aplicación)</strong>\n1. Abrir la aplicación de PedidosYa.\n2. Buscar la sección de \"Ayuda\" o \"Soporte\" en el pedido.\n3. Selecciona la opción \"Ayuda en Línea\" para reportar el problema directamente.", grupos: [
+    { label: "", items: [
+      "xxx//rider indica balance de efectivo insuficiente//no es pago online o cash collection//el valor del pedido excede el monto mínimo//divido el pedido//RS",
+      "xxx//indica balance de efectivo insuficiente//no es pago online o cash collection//el valor del pedido no excede el monto mínimo//envió solución \"/On_IC_MontoMenor\"//RS",
+      "xxx//rider indica balance de efectivo insuficiente//método de pago online//indico que no es necesario abonar en el local//RS",
+      "xxx//rider indica balance de efectivo insuficiente//rider no quiere seguir con el pedido//envió solución \"Autogestionarse\"//RS",
+      "// indica problemas con el pago en la entrega // no es cash collection // valor excede el monto mínimo // divido pedido // informo al rider // RS",
+    ]},
+  ]},
+
+  { id: "local-closed", label: "Local Cerrado", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//rider no está near pickup//indica local cerrado//indico que se dirija al local//RS",
+      "xxx//rider en near pickup//rider indica local cerrado//local no tiene fechas especiales//local aparece abierto//incontactable//rechazo el pedido//RS",
+      "xxx//rider en near pickup//rider indica local cerrado//local no tiene fechas especiales//local aparece abierto//llamo al local con éxito y confirma el pedido//informo al rider//RS",
+      "xxx//rider en near pickup//rider indica local cerrado//local no tiene fechas especiales//local aparece abierto//llamo al local y indica que ya cerraron//rechazo el pedido//RS",
+      "xxx//rider en near pickup//indica local cerrado//no tiene fechas especiales//local aparece cerrado//¿cerró hace menos de 20 min? sí//incontactable//rechazo el pedido//RS",
+      "xxx//rider en near pickup//indica local cerrado//no tiene fechas especiales//local aparece cerrado//¿cerró hace menos de 20 min? sí//llamo y confirma que no preparará el pedido//rechazo//RS",
+      "xxx//rider en near pickup//indica local cerrado//no tiene fechas especiales//local aparece cerrado//¿cerró hace más de 20 min? sí//rechazo el pedido//RS",
+      "xxx//rider indica local cerrado//local tiene fechas especiales//rider se comunicó LUEGO del commited pickup time//rechazo el pedido//RS (motivo \"fuera de horario\")",
+      "xxx//rider indica local cerrado//local tiene fechas especiales//rider se comunicó ANTES del commited pickup time//rechazo el pedido//RS (motivo \"local cerrado\")",
+      "Cadete indica local cerrado //no tiene fechas especiales / cerrado // cerró hace más de 20 minutos //cancelo pedido por fuera de horario // informó al rider cancelación //RS",
+      "Cadete indica local cerrado // no tiene fechas especiales // cerrado/cerró hace menos de 20 minutos // llamo al partner // no contesta // cancelo pedido por fuera de horario // informo al rider cancelación // RS",
+      "Cadete indica local cerrado//no tiene fechas especiales//cerrado//cerró hace menos de 20 minutos//llamo al partner//contestan llamada//informan que están abierto//envío solución PartnerAbierto//RS",
+      "Cadete indica local cerrado//no tiene fechas especiales// abierto//llamo al partner//no contestan llamadas//cancelo pedido por local cerrado//informo al rider cancelación//RS",
+      "Cadete indica local cerrado//no tiene fechas especiales// abierto//llamo al partner// contestan llamada/solución Partner abierto/RS",
+      "Cadete informa local cerrado//tiene fechas especiales//cadete no se comunica luego del Commited pickup time//rechazo pedido por local cerrado// informo al rider// RS",
+      "//Rider indica local cerrado totalmente//Local no tiene fechas especiales//Local abierto//Llamo al Partner sin éxito//Rechazo la pedido por \"Local Cerrado\"//RS",
+    ]},
+  ]},
+
+  { id: "no-contacta-usuario", label: "No puede contactar al cliente", badge: "nocurrier", notas: "<strong>Comentario Especial:</strong> Segmento B, no puede localizar al usuario:\n\n<i>\"Para poder ayudarte, necesitamos que entres por el menú de ‘No puedo contactar al usuario’ y sigas los pasos para poder comunicarte con el usuario y, si aún no responde, te cancelamos el pedido, por favor. Es importante que ingreses desde el flujo para que nosotros podamos proceder\"</i>", grupos: [
+    { label: "", items: [
+      "xxx//rider near dropoff//no puede contactar al usuario//rider seg a//envió solución /On_UC_AvisoCancela//canceló el pedido//indico pasos de devolución//RS",
+      "xxx//rider near dropoff//no puede contactar al usuario//rider seg b//usuario contesta la llamada y recibirá el pedido//envió solución \"/On_UC_Recibe\"//RS",
+      "xxx//rider near dropoff//no puede contactar al usuario//rider seg b//incontactable//envió solución /On_UC_AvisoCancela//canceló pedido//indico pasos de devolución//RS",
+      "xxx//rider en near dropoff//no puede contactar al usuario//no entró por el flujo correcto//envió solución \"PasosPrevios\"//RS",
+      "xxx//rider no está near dropoff//no puede contactar al usuario//envió solución \"/On_UC_Dropoff\"//RS",
+      "//no puede contactar al usuario//rider indica que el usuario ahora salió a recibir el pedido//RS",
+      "Cadete indica que no puede contactar al usuario/ no está en near dropoff/ envió template Dropoff//RS",
+      "Rider tiene problemas para contactar al usuario//Ya realizó las validaciones//segmento A//notificó de la cancelación al rider//canceló pedido//sop devolución//RS",
+      "// indica problemas para contactar al usuario // ingresó por el flujo correcto // seg B // llamo con éxito // recibe el pedido // envío solución /On_UC_Recibe // RS",
+      "// indica problemas para contactar al usuario // ingresó por el flujo correcto // seg B // llamo sin éxito // envío solución // cancelo pedido // sigo SOP de devolución // RS",
+      "// indica problemas para contactar al usuario // ingresó por el flujo correcto // seg A // envío solución // cancelo pedido // sigo SOP de devolución // RS",
+      "// indica problemas para contactar al usuario // NO tiene problemas con la app // no ingresó por el flujo correcto // no verificó chat // envío solución /On_UC_PasosPrevios // RS",
+      "//Rider indica que no puede contactar al usuario//Courier business//Llamo//No contesta//Seg A//Envío solución//País + cancelado//Cancelo el pedido//RS",
+    ]},
+  ]},
+
+  { id: "asignacion", label: "Cadete no recibe órdenes", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//cadete no recibe pedidos//rider no está pausado//rider en su zona//primer contacto//envió solución \"Contacta1\"//RS",
+      "xxx//cadete no recibe pedidos//rider no está pausado//rider en su zona//segundo contacto//envió solución \"Contacto2\"//RS",
+      "//cadete no recibe pedidos//no está pausado//no está en su zona//envío solución /On_AOA_FueraDeZona//RS",
+    ]},
+  ]},
+
+  { id: "cancela-usuario", label: "Cliente solicita cancelar (No currier)", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//no está near dropoff//usuario solicita cancelar pedido//pedido levantado//no es pago móvil//verifico en el chat y solicita cancelar//seg a//rechazo el pedido//RS",
+      "xxx//no está near dropoff//usuario solicita cancelar pedido//pedido levantado//no está con el usuario//no es pago móvil//no hay chats//envió solución \"NOCancela\"//RS",
+      "xxx//no está near dropoff//usuario solicita cancelar pedido//pedido levantado//no es pago móvil//verifico en el chat y solicita cancelar//seg b//incontactable//envío solución \"NoCancela\"//RS",
+      "xxx//no está near dropoff//usuario solicita cancelar pedido//pedido levantado//no es pago móvil//verifico en el chat y solicita cancelar//seg b//llamo y confirma que no recibirá el pedido//rechazo pedido//RS",
+      "// indica cancelación de pedido por parte del usuario // levantó el pedido // no está con el usuario en DO // sin errores en pago móvil // no se contactó con el local // valido chat R2C // solicita cancelar // SEG A // cancelo pedido // sigo SOP de devolución // RS",
+      "// rider indica usuario quiere cancelar en DO // llamo sin éxito // envío solución /AvisoCancela // cancelo pedido // sigo SOP de devolución // RS",
+    ]},
+  ]},
+
+  { id: "codigo-entrega", label: "Verificación de identidad / Problemas con el PIN", badge: "nocurrier", grupos: [
+    { label: "No B2C", items: [
+      "xxx//problemas con el pin//rider near dropoff//rider entregó pedido//seg a//completo pedido//RS",
+      "xxx//problemas con el pin//rider near dropoff//rider entregó pedido//seg b//envió solución \"/On_ID_CódigoUser\"//RS",
+      "// indica problemas con el pin en el DO // ya entregó pedido // no es B2C // seg A // completo pedido // informo al rider // RS",
+    ]},
+    { label: "B2C - Restaurante y gastronomía", items: [
+      "xxx//problemas con el pin//rider near dropoff//rider entregó el pedido//es b2c//es restaurante y gastronomía//seg a//completo pedido//RS",
+      "xxx//problemas con el pin//rider near dropoff//rider entregó el pedido//es b2c//es restaurante y gastronomía//seg b//envió solución \"/On_ID_CódigoUser\"//RS",
+    ]},
+    { label: "B2C - Otras categorías", items: [
+      "xxx//problemas con el pin//rider near dropoff//rider entregó el pedido//es b2c//no es de restaurante y gastronomía//no es de Chile//seg a//completo pedido//RS",
+      "xxx//problemas con el pin//rider near dropoff//rider entregó el pedido//es b2c//no es de restaurante y gastronomía//no es de Chile//seg b//envió solución \"/On_ID_CódigoUser\"//RS",
+      "xxx//problemas con el pin//rider near dropoff//rider entregó el pedido//es b2c//no es de restaurante y gastronomía//es de Chile//rechazo pedido y envió solución \"CompletaSinPIN\"//RS",
+      "//Rider indica problemas con el código en la entrega//Está en Near Dropoff//Indica que ya entregó el pedido//SEG B//Envío solución /On_ID_CódigoUser//RS",
+      "//Rider indica problemas con el código en la entrega//Está en Near Dropoff//Rider entregó el pedido//B2C-NO RyG//Es Chile//Rechazo pedido por \"Problemas técnicos\"//Envío solución /ON_ID_CompletaSinPin//RS",
+    ]},
+    { label: "No está near dropoff", items: [
+      "//problemas con el pin//no está near dropoff//¿la distancia entre PU & DO es menor a 0.20 km? sí//completo pedido//RS",
+      "xxx//problemas con el pin//no está near dropoff//¿la distancia entre PU & DO es menor a 0.20 km? no//envío solución On_ID_PuntoEntrega//RS",
+    ]},
+  ]},
+
+  { id: "problema-dropoff", label: "No puede encontrar dirección del cliente (dropoff)", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//no puede acceder al dropoff//pedido levantado//rider intentó comunicarse vía chat//usuario no contestó el chat//llamo y no da alternativas//rechazo pedido//RS",
+      "xxx//no puede acceder al dropoff//pedido levantado//rider intentó comunicarse vía chat//usuario no contestó el chat//llamo y da alternativas//informo al rider//rider indica que sí puede continuar//RS",
+      "xxx//no puede acceder al dropoff//pedido levantado//rider intentó comunicarse vía chat//usuario no contestó el chat//usuario incontactable//rechazo pedido//RS",
+      "xxx//no puede acceder al dropoff//pedido levantado//rider intentó comunicarse vía chat//usuario contesta el chat y no brinda alternativas//rechazo pedido//RS",
+      "xxx//no puede acceder al dropoff//pedido levantado//rider intentó comunicarse vía chat//usuario contesta el chat y brinda alternativas//rider no puede realizar la entrega con las alternativas//rechazo pedido//RS",
+      "xxx//no puede acceder al dropoff//pedido levantado//rider no intentó comunicarse vía chat//envió solución \"/On_UF_ChatR2C\"//RS",
+    ]},
+  ]},
+
+  { id: "no-encuentra-dropoff", label: "Dirección incorrecta / No encuentra el dropoff", badge: "nocurrier", grupos: [
+    { label: "No B2C - No recurrente", items: [
+      "xxx//usuario pide cambio de dirección//no es b2c//no es recurrente//rider validó con el usuario//cumple los parámetros//cambio la dirección//está dentro de su zona//rider indica que continuará//RS",
+      "//usuario pide cambio de dirección//no es b2c//no es recurrent//rider NO validó con el usuario//¿la nueva distancia es mayor a la permitida? NO//cumple los parámetros//cambio la dirección//está dentro de su zona//rider indica que continuará//RS",
+      "xxx//usuario pide cambio de dirección//no es b2c//no es recurrente//rider no validó con el usuario//corrijo dirección//distancia no es mayor a la permitida//cumple con los parámetros y está dentro de su zona//RS",
+    ]},
+    { label: "No B2C - Recurrente", items: [
+      "xxx//usuario pide cambio de dirección//no es b2c//es recurrente//seg a//rider validó con el usuario//cumple con los parámetros//cambio la dirección//está dentro de su zona//rider indica que continuará//RS",
+      "//usuario pide cambio de dirección//no es b2c//es recurrente//seg a//rider NO validó con el usuario//¿la nueva distancia es mayor a la permitida? NO//cumple con los parámetros//cambio la dirección//está dentro de su zona//rider indica que continuará//RS",
+      "//usuario pide cambio de dirección//no es b2c//es recurrente//seg a//rider NO validó con el usuario//¿la nueva distancia es mayor a la permitida? NO//cumple con los parámetros//cambio la dirección//está dentro de su zona//rider indica que NO continuará//rechazo pedido//RS",
+      "//usuario pide cambio de dirección//no es b2c//es recurrente//seg a//rider validó con el usuario//cumple con los parámetros//cambio la dirección//está dentro de su zona//rider indica que no continuará//rechazo//RS",
+      "xxx//usuario pide cambio de dirección//no es b2c//es recurrente//seg b//envió solución \"/On_UF_SinGestión\"//RS",
+    ]},
+    { label: "B2C", items: [
+      "xxx//usuario pide cambio de dirección//es b2c//usuario incontactable//rechazo pedido//indico pasos para devolución//RS",
+      "//usuario pide cambio de dirección//es b2c//usuario incontactable//rider no quiere cancelar//no acciono//RS",
+      "xxx//usuario pide cambio de dirección//es b2c//llamo y brinda nueva dirección//pedido dentro de zona//la dirección ya es correcta//RS",
+    ]},
+    { label: "Sin validar", items: [
+      "//usuario pide cambio de dirección//no es b2c//rider no validó con el usuario//envío solución//RS",
+      "pide cambio de coordenadas sin validar dirección con usuario en R2C-RS",
+      "//cambio de coordenadas sin validar dirección con usuario en R2C-RS",
+    ]},
+    { label: "Rider pide cambio — seg A", items: [
+      "xxxx // rider pide cambio de direccion// se encuentra dentro de los parametros // seg A// cambio de direccion //RS",
+      "xxxx //Cadete indica dirección incorrecta/no validó con el usuario la dirección en el R2C//dentro de zona y con distancia permitida//le digo al rider que ya está cambiado//RS",
+    ]},
+    { label: "Rider pide cambio — fuera de zona / volver zona", items: [
+      "Cadete indica dirección incorrecta/validó con el usuario la dirección en el R2C//no está dentro de zona//volver zona//le digo al rider que ya está cambiado//RS",
+    ]},
+    { label: "PIN de GPS (distancia sin chat 6 km)", items: [
+      "cadete se encuentra en la dirección correcta de entrega y solicita actualizar coordenadas//no hay chat de validación//corrijo coordenadas//no mayor a distancia permitida/fuera de zona// envío template VolverZona // RS",
+      "cadete se encuentra en la dirección correcta de entrega y solicita actualizar coordenadas//hay chat de validación//corrijo coordenadas//no mayor a distancia permitida//cambio dirección// RS",
+    ]},
+  ]},
+
+  { id: "distancia-lejos", label: "Distancia del pedido muy lejos", badge: "ambos", grupos: [
+    { label: "No currier — moto / auto / bici plus (límite 6 km)", items: [
+      "xxx//distancia del pedido muy lejos//vehículo del rider es motocicleta//verifico y excede la distancia requerida//es de Chile//envío solución /On_DistanciaExcedida//rider quiere reasignar//reasigno//RS",
+      "//distancia del pedido muy lejos//vehículo del rider es motocicleta//verifico y excede la distancia requerida//es de Chile//envío solución /On_DistanciaExcedida//rider no quiere reasignar//no acciono//RS",
+      "//distancia del pedido muy lejos//vehículo del rider es motocicleta//verifico y excede la distancia requerida//no es de Chile//reasigno//RS",
+    ]},
+    { label: "No currier / currier — bici (límite 3.5 km)", items: [
+      "//distancia del pedido muy lejos//vehículo del rider es bicicleta//verifico y excede la distancia requerida//es de Chile//envío solución /On_DistanciaExcedida//rider quiere reasignar//reasigno//RS",
+      "//distancia del pedido muy lejos//vehículo del rider es bicicleta//verifico y excede la distancia requerida//es de Chile//envío solución /On_DistanciaExcedida//rider no quiere reasignar//no acciono//RS",
+      "//distancia del pedido muy lejos//vehículo del rider es bicicleta//verifico y excede la distancia requerida//no es de Chile//reasigno//RS",
+    ]},
+    { label: "No currier / currier — walker (límite 1 km)", items: [
+      "//distancia del pedido muy lejos//el rider es walker//verifico y excede la distancia requerida//es de Chile//envío solución /On_DistanciaExcedida//rider quiere reasignar//reasigno//RS",
+      "//distancia del pedido muy lejos//el rider es walker//verifico y excede la distancia requerida//es de Chile//envío solución /On_DistanciaExcedida//rider no quiere reasignar//no acciono//RS",
+      "//distancia del pedido muy lejos//el rider es walker//verifico y excede la distancia requerida//no es de Chile//reasigno//RS",
+    ]},
+    { label: "Currier — moto / bici plus / auto (límite 15 km)", items: [
+      "//distancia del pedido muy lejos//currier//vehículo del rider es motocicleta//verifico y excede la distancia requerida//es de Chile//envío solución /On_DistanciaExcedida//rider quiere reasignar//reasigno//RS",
+      "//distancia del pedido muy lejos//currier//vehículo del rider es motocicleta//verifico y excede la distancia requerida//es de Chile//envío solución /On_DistanciaExcedida//rider no quiere reasignar//no acciono//RS",
+      "//distancia del pedido muy lejos//currier//vehículo del rider es motocicleta//verifico y excede la distancia requerida//no es de Chile//reasigno//RS",
+      "//distancia del pedido muy lejos//vehículo del rider es motocicleta//no excede la distancia requerida//envió solución On_Recorrido//RS",
+    ]},
+    { label: "Distancia al local — no excede", items: [
+      "//rider indica distancia al LOCAL muy lejos//valido vehiculo bici//no excede distancia permitida//envío solución /On_Recorrido//RS",
+      "//rider indica distancia al LOCAL muy lejos//valido walker//no excede distancia permitida//envío solución /On_Recorrido//RS",
+      "//rider indica distancia al LOCAL muy lejos//valido vehiculo auto, moto o biciplus//no excede distancia permitida//envío solución /On_Recorrido//RS",
+    ]},
+    { label: "Distancia al local — excede — no Chile", items: [
+      "//rider indica distancia al LOCAL muy lejos//valido vehiculo auto, moto o biciplus// excede distancia permitida// NO es chile//reasigno pedido con motivo \"System - Distance to pickup/dropoff too far - not willing to proceed\"//RS",
+      "//rider indica distancia al LOCAL muy lejos//valido vehiculo bici// excede distancia permitida// NO es chile//reasigno pedido con motivo \"System - Distance to pickup/dropoff too far - not willing to proceed\"//RS",
+      "//rider indica distancia al LOCAL muy lejos//valido vehiculo walker// excede distancia permitida// NO es chile//reasigno pedido con motivo \"System - Distance to pickup/dropoff too far - not willing to proceed\"//RS",
+    ]},
+    { label: "Distancia al local — excede — Chile", items: [
+      "//rider indica distancia al LOCAL muy lejos//valido vehiculo auto, moto o biciplus// excede distancia permitida// SI es chile//envío solución /On_DistanciaExcedida//rider acepta reasignación//reasigno pedido con motivo \"System - Distance to pickup/dropoff too far - not willing to proceed\"//RS",
+      "//rider indica distancia al LOCAL muy lejos//valido vehiculo auto, moto o biciplus// excede distancia permitida// SI es chile//envío solución /On_DistanciaExcedida//rider no acepta reasignación//no acciono//RS",
+      "//rider indica distancia al LOCAL muy lejos//valido vehiculo auto, moto o biciplus// excede distancia permitida// SI es chile//envío solución /On_DistanciaExcedida//rider cierra chat//RS",
+      "//Rider indica distancia del local excede el límite//Distancia del pedido es igual o mayor a la permitida//Pedido no es de Chile//Reasigno por \"Distance to pickup/dropoff too far\"//RS",
+      "//Rider indica distancia del pedido muy lejos//Distancia del pedido es igual o mayor a la permitida//Pedido no es de Chile//Reasigno por \"Distance to pickup/dropoff too far\"//RS",
+    ]},
+  ]},
+
+  { id: "fuera-zona", label: "Entrega fuera de zona (Currier / B2C)", badge: "currier", grupos: [
+    { label: "Currier", items: [
+      "xxx//fuera de zona//currier//no es tercer rider reportando lo mismo//verifico y está fuera de su zona//seg a//reasigno//RS",
+      "xxx//fuera de zona//currier//no es tercer rider reportando lo mismo//verifico y está fuera de su zona//seg b//envió solución \"AutogestiónZona\"//RS",
+      "xxx//fuera de zona//currier//no es tercer rider reportando lo mismo//verifico y no está fuera de su zona//envió solución \"/On_ND_DentroDeZona\"//RS",
+      "//fuera de zona//currier//tercer contacto//rechazo pedido//RS",
+    ]},
+  ]},
+
+  { id: "no-preparar", label: "Local no quiere preparar la orden", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//rider near pickup//local no quiere preparar el pedido//no es recontacto//llamo y indica que no va a preparar el pedido//rechazo pedido//RS",
+      "xxx//rider near pickup//local no quiere preparar el pedido//no es recontacto//llamo y indica que va a preparar el pedido//indico al rider que espere por el pedido//RS",
+      "xxx//rider near pickup//local no quiere preparar el pedido//no es recontacto//local incontactable//seg a//reasigno pedido//RS",
+      "xxx//rider near pickup//local no quiere preparar el pedido//local incontactable//seg b//envió solución \"/On_RP_PreparacionOK\"//RS",
+      "xxx//rider no está near pickup//local no quiere preparar el pedido//indico que se dirija al local//RS",
+      "//no es posible preparar el pedido//segundo contacto//rechazo el pedido//RS",
+      "//Local no quiere preparar la pedido//Cliente solicita cancelar//Hay chat R2C y solicita cancelar//SEG A//Rechazo el pedido por \"Error al realizar el pedido\"//RS",
+      "//Local no quiere preparar la pedido//Cliente solicita cancelar//No hay chat R2C//Envío solución/On_RP_NoCancela//RS",
+      "//Local no quiere preparar la pedido//Cliente solicita cancelar//Usuario se comunica con local para solicitar la cancelación//Envío solución /On_RP_CancelaLocal//RS",
+    ]},
+  ]},
+
+  { id: "demorado", label: "Demoras en la preparación", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//demoras en la preparación//¿rider está a menos de 150 m del local? sí//no tiene stacking//¿la demora es mayor a CPT +15 min? sí//reasigno//RS",
+      "xxx//demoras en la preparación//¿rider está a menos de 150 m del local? sí//no tiene stacking//¿la demora es menor a CPT -15 min? sí//envió solución \"Autogestionarse\"//RS",
+      "xxx//demoras en la preparación//¿rider está a más de 150 m del local? sí//indico que se dirija al local//RS",
+      "// indica demoras en la preparación // está near PU // no tiene stacking de pedidos // demora MENOR a 15min // Envío solución // informo al rider // RS",
+      "//Rider indica pedido demorada//Rider no tiene stacking de pedidos//La demora es mayor al CPT+15//Reasigno la pedido con el motivo \"Vendor - Late preparation, additional 15 min needed\"//RS",
+    ]},
+  ]},
+
+  { id: "chequeo-estado", label: "Chequeo de estado de la orden", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//solicita número del usuario//no levantó el pedido//no brindo el número//RS",
+      "//solicita número del usuario//pedido levantado//brindo el número//RS",
+      "//solicita número del local//brindo el número//RS",
+      "//solicita número del punto de retiro//b2c//brindo número//RS",
+      "//solicita número del punto de retiro//currier//brindo número//RS",
+      "//rider consulta datos del pedido//informo//RS",
+      "//Chequeo de estado de la pedido//Datos de la pedido//Informo//RS",
+      "//Chequeo de estado de la pedido//Consulta por pedido anterior//Informo//RS",
+      "S.A//XXXX//No se encuentra en NEAR DO//RS",
+      "//Informa sobre su estado//RS",
+      "S.A//XXXXX//rider informa sobre su estado//RS",
+    ]},
+  ]},
+
+  { id: "no-llega-pickup", label: "Partner - Problemas accediendo a la ubicación del local", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//no puede llegar al pickup//no dio pickup//no es recontacto de otro rider//envió solución \"/On_IA_DirecciónOK\"//RS",
+      "xxx//no puede llegar al pickup//el pedido está pick up//envió solución \"/On_IA_Pickeada\"//RS",
+      "//rider indica no puede llegar al DO // no es B2C // sin chat R2C // Envío solución /ChatR2C // RS",
+    ]},
+  ]},
+
+  { id: "no-encuentra-pickup", label: "No puede encontrar dirección del pickup / local", badge: "ambos", grupos: [
+    { label: "No currier", items: [
+      "xxx//no encuentra el local//no es recontacto//HU y BO coinciden//local incontactable//seg a//reasigno pedido//RS",
+      "xxx//no encuentra dirección pickup B2X//no es recontacto//no es B2C//HU coincide con BO//coordenadas correctas//rider sigue extraviado//seg a//reasigno por \"Not moving towards pickup/dropoff and not reachable\"//RS",
+      "xxx//no encuentra el local//no es recontacto//HU y BO coinciden//local incontactable//seg b//envió solución \"/On_UL_DirecciónOK\"//RS",
+      "xxx//no encuentra el local//no es recontacto//HU y BO coinciden//llamo e indica indicaciones para llegar//dentro de zona//RS",
+      "xxx//no encuentra el local//no es recontacto//HU y BO coinciden//llamo y brinda nueva indicación//fuera de zona//rechazo pedido//RS",
+      "//no encuentra el local//no está near pickup//indico que se dirija al local//RS",
+      "//no encuentra el local//contacto de otro rider//rechazo pedido//RS",
+    ]},
+    { label: "Currier", items: [
+      "//no encuentra el local//currier//dirección de HU y BO coinciden//seg a//reasigno//RS",
+      "//no encuentra el local//currier//dirección de HU y BO coinciden//llamo e indica otra dirección muy lejos//rechazo//RS",
+    ]},
+  ]},
+
+  { id: "problemas-pos", label: "Problemas con el POS / Sistema de recepción", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//problemas con el POS//no es redelivery//rider near pickup//no es recontacto//local incontactable//no hay fechas especiales//envío solución//RS",
+      "xxx//problemas con el POS//no es redelivery//rider near pickup//no es recontacto//local incontactable//hay fechas especiales//rechazo pedido//RS",
+      "xxx//problemas con el POS//no es redelivery//rider near pickup//no es recontacto//llamo y confirma el problema//rechazo el pedido//RS",
+      "xxx//problemas con el POS//no es redelivery//rider near pickup//no es recontacto//llamo y indica que no tiene problemas//informo al rider//RS",
+      "//problema con el POS//rider pick up//segundo contacto//rechazo pedido//RS",
+      "//rider indica problemas con el pos//no es un redelivery//NO es un recontacto de otro rider por el mismo motivo//llamo al local con éxito//indican que sí hay problemas con el pos//cancelo pedido//RS",
+      "//Problemas con el POS/Sistema de recepción//Partner NO contesta llamada//NO hay fechas especiales//Envío solución /On_DI_POSOK//RS",
+    ]},
+  ]},
+
+  { id: "accidente", label: "Robo o accidente", badge: "nocurrier", grupos: [
+    { label: "Accidente", items: [
+      "xxx//accidente//no necesita asistencia médica//pedido levantado//rechazo pedido//aplico pausa \"R7\"//RS",
+      "xxx//accidente//no necesita asistencia médica//no tiene pedido levantado//envío solución /PausaAccidente//RS",
+    ]},
+    { label: "Robo", items: [
+      "//robo//no necesita asistencia médica//no levantó pedido//envío solución \"/PausaAccidente\"//RS",
+      "//robo//no necesita asistencia médica//pedido levantado//no tiene el pedido//envío solución /InfoRobo//rechazo pedido//aplico pausa \"R7\"//RS",
+    ]},
+  ]},
+
+  { id: "pedido-danado", label: "Orden dañada o derramada", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "O.X//pedido dañado//no es por accidente//no está en el dropoff//envío solución \"EntregarPedido\"//RS",
+    ]},
+  ]},
+
+  { id: "fin-pausa", label: "Finalización de pausa", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//finalización de pausa//devuelve pedido//manda imagen//acciono//RS",
+      "//finalización de pausa//pausa roja//no acciono//RS",
+      "//Rider indica finalización de pausa//La pausa es roja//No corresponde sacar//Informo//RS",
+    ]},
+  ]},
+
+  { id: "cancela-currier", label: "Cliente solicita cancelar (Currier)", badge: "currier", grupos: [
+    { label: "", items: [
+      "//usuario solicita cancelar//no es recontacto//rider en el pickup//usuario incontactable//seg a//rechazo pedido//RS",
+      "//usuario solicita cancelar//no es recontacto//rider en el pickup//usuario incontactable//seg b//no es b2c//reasigno pedido//RS",
+      "//usuario solicita cancelar//no es recontacto//rider en el pickup//usuario incontactable//seg b//es b2c//envió solución /On_RC_CancelaB2C//RS",
+      "//usuario solicita cancelar//no es recontacto//rider en el pickup//llamo y indica que quiere recibir el pedido//RS",
+      "//usuario solicita cancelar//no es recontacto//rider en el pickup//llamo y indica que quiere cancelar//rechazo el pedido//RS",
+      "//no es segundo contacto//usuario pide cancelar//no está near pickup//envío solución//RS",
+      "//cliente solicita cancelar//C2C-B2X//no es recontacto//rider SÍ está en near pickup//seg a//llamadas fallidas al usuario//cancelo el pedido por \"Error al realizar el pedido\"//informo al cadete//RS",
+    ]},
+  ]},
+
+  { id: "local-desconoce", label: "Local desconoce del pedido (Currier)", badge: "currier", grupos: [
+    { label: "", items: [
+      "//local desconoce del pedido//no es recontacto//seg a//reasigno//RS",
+      "//local desconoce del pedido//segundo contacto//rechazo pedido//RS",
+    ]},
+  ]},
+
+  { id: "paquete-sospechoso", label: "Paquete sospechoso", badge: "currier", grupos: [
+    { label: "", items: [
+      "//paquete sospechoso//rider no abrió el pedido//rechazo y envío solución//RS",
+    ]},
+  ]},
+
+  { id: "problemas-punto-retiro", label: "Problemas en el punto de retiro", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "//rider near pickup//problemas en el punto de retiro//incontactable//seg a//rechazo pedido//RS",
+      "xxx//rider near pickup//problemas en el punto de retiro//incontactable//seg b//envío solución//RS",
+      "xxx//rider near pickup//problemas en el punto de retiro//llamo y indica que continuará con la entrega//informo al rider//RS",
+      "//rider near pickup//problemas en el punto de retiro//llamo y indica que no continuará con la entrega//rechazo pedido//RS",
+      "//rider no está near pickup//problemas en el punto de retiro//indico que se dirija al punto de retiro//RS",
+    ]},
+  ]},
+
+  { id: "pin-gps", label: "Pin de GPS incorrecto", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//pin de GPS incorrecto//no es recurrente//rider validó con el usuario//pedido dentro de zona//corrijo pin//RS",
+      "xxx//pin de GPS incorrecto//es recurrente//seg b//envió solución \"/On_UF_SinGestión\"//RS",
+      "xxx//pin de GPS incorrecto//no es recurrente//seg a//rider validó con el usuario//pedido dentro de zona//corrijo pin//RS",
+      "xxx//pin de GPS incorrecto//no es recurrente//seg a//rider NO validó con el usuario en R2C//distancia no supera la permitida//pedido dentro de zona//corrijo la dirección//RS",
+      "xxx//pin de GPS incorrecto//no es recurrente//rider no validó con el usuario//distancia no supera la permitida//pedido dentro de zona//corrijo pin//RS",
+      "xxx//pin de GPS incorrecto//pedido completado//no acciono//RS",
+      "// cadete indica pin de gps incorrecto // no hay chat R2C // distancia menor a la permitida // actualizo dirección // dentro de zona // informo al rider // RS",
+      "//No puede encontrar dirección del usuario//NO HAY CHAT R2C//Envío solución//RS",
+      "//No puede encontrar dirección del usuario//verifico dirección//actualizo coordenadas//zona o distancia permitida//informo//RS",
+    ]},
+  ]},
+
+  { id: "problemas-app", label: "Problemas con la app", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//manda captura//problemas con la app//vs 400_01//envío solución y completo pedido//RS",
+      "//problemas con la app//manda imagen//no puede levantar el pedido//marco como levantado//RS",
+      "//problemas con la app//manda captura//error vs400_07//envío solución \"/On_AI_FueraGeofence\"//RS",
+      "xxx//rider indica problemas con el celular//no puede completar pedido//envio solucion//phoneissue//RS",
+      "xxx//rider indica problemas con el celular//no puede completar pedido//envio solucion//capturaNoOk//RS",
+      "xxx//problemas con la app//manda captura del error//rider indica que reasigna vía Help Center pero sistema no quita la orden//rider sigue con el pedido asignado//envío solución \"On_AI_ErrorOcasional\"//reasigno por \"Not accepting\"//RS",
+      "//indica problemas con la app//Rider no sube captura de pantalla//Envío solución /On_AI_SolicitarCaptura//RS",
+    ]},
+  ]},
+
+  { id: "no-acepta-dropoff", label: "Usuario no quiere aceptar el pedido (dropoff)", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxx//rider en el dropoff//usuario no quiere aceptar el pedido//no es double ya//incontactable//envió solución AvisoCancela//rechazó el pedido//indico pasos para la devolución//RS",
+      "xxx//rider en el dropoff//usuario no quiere aceptar el pedido//no es double ya//llamo y confirma que no recibirá el pedido//rechazó el pedido//indico pasos de devolución//RS",
+      "xxx//rider en el dropoff//usuario no quiere aceptar el pedido//no es double ya//llamo y indica que recibirá el pedido//informo al rider//RS",
+      "xxx//usuario no quiere aceptar el pedido//rider no está near dropoff//envío solución//RS",
+      "//Cliente no quiere aceptar la pedido en DO//Llamo//No responde//Rechazo pedido//Envío/País+cancelado//Informo//RS",
+    ]},
+  ]},
+
+  { id: "usuario-frecuente", label: "Verificación de identidad (usuario frecuente)", badge: "nocurrier", notas: "<strong>Comentario Especial:</strong> Dar información del usuario, pedidos, número validado, y si es un usuario antiguo (de tal año). Enviar template correspondiente.\n\n<strong>Caso Especial:</strong>\nxxxx //Rider consulta frecuencia de usuario//Verifico Usuario frecuente en Plataforma// informo al rider//RS", grupos: [
+    { label: "", items: [
+      "xxx//consulta por usuario frecuente//es frecuente//informo//RS",
+      "xxx//consulta por usuario frecuente//no es frecuente//envió solución//rider quiere cancelar//acciono//RS",
+      "//rider consulta usuario frecuente//usuario tiene +3 pedido confirmados//no es nuevo//NO es pago online//NO es recontacto del mismo rider por mismo motivo//envío solución/On_ID_Frecuente//RS",
+    ]},
+  ]},
+
+  { id: "zona-roja", label: "Zona roja / No quiere llevar a zona peligrosa", badge: "ambos", notas: "<strong>Comentario Especial:</strong> No quiere llevar a zona peligrosa y verificación de identidad (No tiene el copilot).", grupos: [
+    { label: "No es punto de entrega/recogida", items: [
+      "xxx//rider indica zona roja//no es tercer contacto//indica que no es el punto de entrega ni recogida//envió solución \"ZonaEntrega\"//RS",
+    ]},
+    { label: "Es el pickup", items: [
+      "xxx//indica zona roja//no es tercer contacto//no hubo cambios de coordenadas//indica que es el pickup//envió solución \"/On_RZ_PickupOK\"//RS",
+    ]},
+    { label: "No es Chile — seg a", items: [
+      "xxx//indica zona roja//no es tercer contacto//no hubo cambios de coordenadas//no es de Chile//cliente no tiene más de 3 rechazos por zona roja//seg a//pedido levantado//rechazo pedido//indica pasos para la devolución//RS",
+      "xxx//indica zona roja//no es tercer contacto//no hubo cambios de coordenadas//no es de Chile//cliente no tiene más de 3 rechazos por zona roja//seg a//rider no levantó pedido//no es c2c//envió solución \"/On_RZ_ZonaRoja\"//RS",
+    ]},
+    { label: "No es Chile — seg b", items: [
+      "xxx//indica zona roja//no es tercer contacto//no hubo cambios de coordenadas//no es de Chile//cliente no tiene más de 3 rechazos por zona roja//seg b//envió solución \"/On_RZ_ZonaRoja\"//RS",
+    ]},
+    { label: "Es Chile — seg a", items: [
+      "xxx//rider indica zona roja//no es tercer contacto//no hubo cambio de coordenadas//es de Chile//está dentro de su zona//cliente no tiene más de 3 rechazos por zona roja//seg a//pedido levantado//rechazo pedido//indica pasos para la devolución//RS",
+      "xxx//rider indica zona roja//no es tercer contacto//no hubo cambio de coordenadas//es de Chile//está dentro de su zona//cliente no tiene más de 3 rechazos por zona roja//seg a//no levantó pedido//no es c2c//envió solución \"/On_RZ_ZonaRoja\"//RS",
+    ]},
+    { label: "Es Chile — seg b", items: [
+      "xxx//rider indica zona roja//no es tercer contacto//no hubo cambio de coordenadas//es de Chile//está en su zona//cliente no tiene más de 3 rechazos por zona roja//seg b//envió solución \"/On_RZ_ZonaRoja\"//RS",
+    ]},
+    { label: "Seg A — cancela", items: [
+      "xxxx // rider reporta zona roja en punto de entrega // seg A // cancelo pedido//RS",
+      "//Rider indica zona roja// Rider está en Segmento A// Rider SÍ levantó el pedido// Rechazo pedido por \"El local no entrega en la dirección\"//RS",
+      "//Rider indica zona roja// Rider está en Segmento A// Rider NO levantó el pedido// Envío solución /On_RZ_ZonaRoja//RS",
+      "//Rider indica zona roja// Seg A// Rider no levantó el pedido//Es una pedido C2C//Reasigno por motivo \"Not accepting\"//RS",
+    ]},
+  ]},
+
+  { id: "clicket", label: "Clicked through", badge: "nocurrier", grupos: [
+    { label: "No entregó — reasignación", items: [
+      "xxx//completa el pedido por error//no entregó el pedido//no es tercer contacto//no pasó de 30 min//no está cancelado//no tiene pausa//rider no tiene otros pedidos aceptados//vuelvo a asignar el pedido//RS",
+      "xxx//completa el pedido por error//no entregó el pedido//no es tercer contacto//no pasó de 30 min//no está cancelado//quito pausa//rider no tiene otros pedidos aceptados//vuelvo a asignar el pedido//RS",
+      "//completa el pedido por error//no entregó el pedido//no es tercer contacto//no pasó de 30 min//está cancelado//envío solución /On_OCT_ValidaEstado//indico pasos de devolución//RS",
+    ]},
+    { label: "No entregó — otras situaciones", items: [
+      "xxx//completa el pedido por error//no entregó el pedido//es tercer contacto//envió solución \"Recontacto\"//RS",
+      "xxx//completa el pedido por error//no entregó el pedido//no es tercer contacto//pasó de 30 min//envió solución \"Demorado\"//RS",
+    ]},
+    { label: "Levantó por error", items: [
+      "xxx//cadete da todos los pasos//rider indica que levantó pedido por error//seg a//reasigno el pedido//RS",
+      "xxx//cadete da todos los pasos//rider indica que levantó pedido por error//seg b//no es recurrente//reasigno pedido//RS",
+      "xxx//cadete da todos los pasos//rider indica que levantó pedido por error//seg b//es recurrente//envió solución \"/On_OCT_NoGestionar\"//RS",
+      "xxx//cadete da todos los pasos//indica que levantó por error//es recurrente//envió solución//RS",
+      "xxx//cadete da todos los pasos//indica que levantó por error//indica que continuará con la entrega//envío solución//RS",
+      "Rider dió PickUp sin tener la pedido levantada// Rider solicita reasignar la pedido//Seg B// No es recurrente//Reasigno el pedido por el motivo \"Not accepting\"//RS",
+      "CADETE DA TODOS LOS PASOS// Rider dió PickUp sin tener la pedido levantada//Rider solicita reasignar// Reasigno el pedido por el motivo \"Not accepting\"//RS",
+      "cadete da pick up sin tener el pedido//verifico pedido cancelado//informo//RS",
+    ]},
+    { label: "Redelivery con mismo rider", items: [
+      "xxx//cadete da todos los pasos//rider indica que no entregó el pedido//no es tercer contacto//pedido completado hace MENOS de 30 min//no está cancelado//rider no tiene otros pedidos aceptados//hago redelivery con el mismo rider//solicito al rider que acepte//usuario NO contesta//informo al rider//RS",
+      "xxx//cadete da todos los pasos//rider indica que no entregó el pedido//no es tercer contacto//pedido completado hace MENOS de 30 min//no está cancelado//rider no tiene otros pedidos aceptados//hago redelivery con el mismo rider//solicito al rider que acepte//usuario SÍ contesta//informo al rider//RS",
+      "cadete da todos los pasos // indica que no entregó pedido // no es tercer recontacto // no fue completado hace más de 30min // el pedido no se encuentra cancelado // no tiene pedidos aceptados // hago redelivery // llamo sin éxito // XXXXX // RS",
+      "CADETE DA TODOS LOS PASOS// Rider indica que no entregó el pedido// Hago redelivery con el mismo rider//Indico al rider que se le va a volver a asignar el pedido//RS",
+    ]},
+    { label: "Entregó por error", items: [
+      "//cadete da todos los pasos//indica que entregó por error//rider desconoce datos del pedido//no acciono//RS",
+    ]},
+  ]},
+
+  { id: "outro-rider", label: "Orden levantada por otro rider", badge: "currier", grupos: [
+    { label: "", items: [
+      "O.X//rider en near pickup//ingresa por el bot//no es dividido//pedido no está completado//rechazo el pedido//RS",
+      "O.X//rider en near pickup//pedido sí tuvo near pickup de otro rider//no es pedido dividido//pedido no fue completado//rechazo el pedido//RS",
+      "O.X//rider en near pickup//el pedido no tuvo near pickup de otro rider//reasigno pedido//RS",
+      "O.X//rider en near pickup//pedido fue completado//elimino el pedido del rider//RS",
+      "O.X//rider en near pickup//pedido dividido//sí tuvo near pickup de otro rider//elimino el pedido del rider//RS",
+      "O.X//rider no está en near pickup//solicito que se dirija al pickup//RS",
+      "O.X//rider en near pickup//pedido dividido//elimino el pedido al rider//RS",
+      "O.X//xxxx//rider en near pickup//el pedido no tuvo near pickup de otro rider//reasigno pedido//RS",
+      "O.X//pedido levantada por otro rider//no pickup//pedido tuvo near pickup de otro rider//no dividido//cancelo//RS",
+      "O.X // XXXXXX // rider indica otro rider se llevó la pedido // transferido por BOT // no es un pedido dividido // no fue completada anteriormente // cancelo pedido // informo al rider // RS",
+      "O.X //// Rider indica que otro repartidor se llevó la pedido // Pedido con PickUp/Near Pickup confirmado // No es pedido dividido // Orden no completada previamente // Se cancela por motivo \"Repartidor incontactable\" // RS",
+    ]},
+  ]},
+
+  { id: "fuera-zona-nocurrier", label: "Entrega fuera de zona (No currier)", badge: "nocurrier", grupos: [
+    { label: "", items: [
+      "xxxx // rider desea reasignar pedido por fuera de zona // verifico y amerita // reasigno // RS",
+    ]},
+  ]},
+
+  { id: "equipamiento", label:"Problemas con el equipamiento / vehículo", badge: "nocurrier", grupos: [
+    { label: "Pedido levantado", items: [
+      "xxx//problemas con el equipamiento//pedido levantado//rechazo pedido//aplico pausa \"R2\"//envió solución \"ProblemaVehículo\"//RS",
+      "//cadete reporta problemas con el equipamiento // necesita pausa // levantó pedido // pauso al rider // cancelo pedido // envío solución /ProblemaVehiculo // RS",
+    ]},
+    { label: "Pedido no levantado", items: [
+      "xxx//problemas con el equipamiento//no levantó el pedido//envió solución \"PausaVehículo\"//RS",
+      "//Rider indica problemas con su vehículo// NO LEVANTÓ la pedido//envío solución On_EI_PausaVehículo//RS",
+      "//Rider indica problemas con su vehículo// SÍ LEVANTÓ// Pauso al cadete por motivo \"Vehicle/Equipment/Phone Issue R2\"//Rechazo pedido por \"Accidente del cadete\"//Envío solución /On_EI_ProblemaVehículo//RS",
+    ]},
+  ]},
+
+
+{
+  id: "courrier-punto-retiro-c2c",
+  label: "Seleccionar No puede contactar al cliente en punto de retiro - C2C",
+  badge: "currier",
+  grupos: [
+    { label: "", items: [
+      "//courrier//no puede contactar al cliente en punto de retiro//segundo contacto//rechazo pedido//RS",
+      "//courrier//no puede contactar al cliente en punto de retiro//pickup HU diferente a BO//llamo pickup en HU//usuario contesta//informo al rider//RS",
+      "//courrier//no puede contactar al cliente en punto de retiro//pickup HU diferente a BO//usuario incontactable//seg a//reasigno//RS",
+      "//courrier//no puede contactar al cliente en punto de retiro//pickup HU diferente a BO//usuario incontactable//seg b//rechazo pedido//RS",
+      "//courrier//usuario indica que sí entregará el pedido//informo al rider//RS",
+      "//courrier//usuario indica que no entregará el pedido//rechazo pedido//RS",
+    ]},
+  ],
+},
+
+{
+  id: "courrier-dropoff-c2c",
+  label: "Seleccionar No puede encontrar dirección del cliente - C2C (Currier)",
+  badge: "currier",
+  grupos: [
+    { label: "", items: [
+      "//courrier//no puede acceder al dropoff//usuario no responde chat//llamo usuario//no brinda alternativas//rechazo pedido//RS",
+      "//courrier//no puede acceder al dropoff//usuario no responde chat//llamo usuario//brinda alternativa//rider puede continuar//RS",
+      "//courrier//no puede acceder al dropoff//usuario incontactable//rechazo pedido//RS",
+      "//courrier//usuario brinda alternativa//rider no puede completar entrega//rechazo pedido//RS",
+      "//courrier//rider no contactó por chat//envío solución /RiderToCustomer//RS",
+    ]},
+  ],
+},
+
+{
+  id: "courrier-rescate",
+  label: "Seleccionar Rescate de pedido - C2C (Rider incontactable)",
+  badge: "currier",
+  grupos: [
+    { label: "", items: [
+      "//courrier//rescate de pedido//reasigno por \"Not moving towards pickup/dropoff an not reachable\"//RS",
+      "//courrier//nuevo rider contesta llamada y acepta pedido//informo datos del rider accidentado//RS",
+      "//courrier//nuevo rider rechaza pedido//reasigno nuevamente//RS",
+      "//courrier//tercer rider incontactable//rechazo pedido//RS",
+      "//courrier//accidente de rider//cancel delivery inverso en HU//RS",
+    ]},
+  ],
+},
+
+{
+  id: "courrier-cancela-b2x",
+  label: "Seleccionar Cliente solicita cancelar - C2C/B2X (Currier)",
+  badge: "currier",
+  grupos: [
+    { label: "", items: [
+      "//courrier//cliente solicita cancelar//segundo rider notificando mismo incidente//rechazo pedido//RS",
+      "//courrier//cliente solicita cancelar//rider near pickup//usuario confirma cancelación//rechazo pedido//RS",
+      "//courrier//cliente solicita cancelar//usuario no valida cancelación//indico esperar pedido//RS",
+      "//courrier//cliente solicita cancelar//segmento b//es b2c//envío solución /On_RC_CancelaB2C//RS",
+      "//courrier//cliente solicita cancelar//segmento b//no es b2c//reasigno pedido \"Not accepting\"//RS",
+    ]},
+  ],
+},
+
+{
+  id: "courrier-zona-roja",
+  label: "Seleccionar Zona roja - Currier",
+  badge: "currier",
+  grupos: [
+    { label: "", items: [
+      "//courrier//zona roja//tercer rider reporta mismo punto//rechazo pedido//RS",
+      "//courrier//zona roja//pickup confirmado como zona roja//envío solución /On_RZ_PickupOK//RS",
+      "//courrier//zona roja//dropoff confirmado zona roja//segmento a//rechazo pedido//RS",
+      "//courrier//zona roja//dropoff confirmado zona roja//segmento b//envío solución /On_RZ_ZonaRoja//RS",
+      "//courrier//zona roja//pedido no levantado//reasigno \"Not accepting\"//RS",
+    ]},
+  ],
+},
+
+{
+  id: "courrier-pago-qr",
+  label: "Seleccionar Problemas con pago QR (Currier)",
+  badge: "currier",
+  grupos: [
+    { label: "", items: [
+      "//courrier//problemas con QR//cliente tiene dudas sobre Farmauna//envío solución /On_OI_Farmauna//RS",
+      "//courrier//problemas con QR//cliente tiene dudas con Yape//envío solución /On_OI_PagoYAPE//RS",
+      "//courrier//problemas con QR//cliente tiene dudas con Yappy//envío solución /On_OI_YAPPY//RS",
+      "//courrier//problemas con QR//cliente no responde llamadas//rechazo pedido \"Usuario no puede pagar el pedido\"//RS",
+      "//courrier//cliente confirma pago por foto comprobante//confirmo pedido BO y completo en 1VU//RS",
+    ]},
+  ],
+},
+
+{
+  id: "courrier-punto-retiro-b2c",
+  label: "Seleccionar Problemas con usuario en punto de retiro - B2C (Currier)",
+  badge: "currier",
+  grupos: [
+    { label: "", items: [
+      "//courrier//partner no responde llamadas//segmento a//rechazo pedido//RS",
+      "//courrier//partner no responde llamadas//segmento b//envío solución /On_CUC_NoContesta//RS",
+      "//courrier//partner confirma que preparará pedido//envío solución /On_CUC_SinIssues//RS",
+      "//courrier//partner confirma que no preparará pedido//rechazo pedido//RS",
+      "//courrier//segundo contacto mismo motivo//rechazo pedido//RS",
+    ]},
+  ],
+},
+];
+
+const badgeLabels = {
+  currier: "Currier",
+  nocurrier: "No currier",
+  ambos: "Currier & No currier",
+  b2c: "B2C",
+  custom: "Personalizado",
+};
+
+
+const pasosFlujo = {
+  "gran-tamaño": [
+    "Seleccionar el motivo <strong>Orden de gran tamaño</strong>.",
+    "Validar vehículo y cantidad/peso: auto o menos de 4 productos normalmente va con <strong>/On_LO_DimensionesOk</strong>.",
+    "Si es walker, bici o moto y supera los límites, agregar rider o dividir el pedido según corresponda.",
+    "Si se divide, usar motivo <strong>Big order / split order</strong>, dejar nota y cerrar."
+  ],
+  "espera-rider": [
+    "Seleccionar <strong>Chequeo de estado de la orden → Consulta por compañero de entrega en órdenes divididas</strong>.",
+    "Preguntar si el rider puede llevar el pedido solo.",
+    "Si puede y no hay otro rider near pickup, eliminar el delivery del otro rider asignado.",
+    "Si el otro rider está near pickup, pedir que espere o coordine la entrega con los otros riders."
+  ],
+  "prod-no-disp": [
+    "Seleccionar <strong>Producto no disponible</strong>.",
+    "Preguntar si el partner prepara el pedido con el producto faltante.",
+    "Si prepara, enviar <strong>/On_PU_FaltanteEnvio</strong>.",
+    "Si no prepara, enviar <strong>/On_PU_Soporte</strong>, dejar nota y cerrar."
+  ],
+  "faltante-caja": [
+    "Seleccionar <strong>Problemas con el pago en la entrega → Caja insuficiente</strong>.",
+    "Validar si es pago online o cash collection: si lo es, indicar que no debe abonar en local.",
+    "Si no lo es, revisar si el valor supera el monto mínimo del país.",
+    "Si supera, dividir por <strong>Big Order / Split Order</strong>; si no supera, enviar <strong>/On_IC_MontoMenor</strong>.",
+    "xxx//rider indica que no tiene dinero para retirar el pedido//balance de efectivo insuficiente//envió solución \"/On_IC_MontoMenor\"//RS",
+  ],
+  "local-closed": [
+    "Seleccionar <strong>Local Cerrado</strong> y revisar status/fechas especiales en el tablero.",
+    "Si cerró hace más de 20 minutos, rechazar por <strong>Fuera de horario</strong>.",
+    "Si tiene committed pickup time, validar si el rider se comunicó antes o después del CPT.",
+    "Si aparece abierto o cerró hace menos de 20 minutos, llamar al local y accionar según confirme o no confirme el pedido."
+  ],
+  "no-contacta-usuario": [
+    "Seleccionar <strong>No puede contactar al cliente</strong>.",
+    "Verificar si el rider ingresó por el flujo correcto y si está en near dropoff.",
+    "Si está en segmento B, revisar R2C/chat y llamar al usuario si corresponde.",
+    "Si el usuario recibe, enviar <strong>/On_UC_Recibe</strong>; si no responde o no recibe, avisar/cancelar según flujo y aplicar devolución."
+  ],
+  "asignacion": [
+    "Seleccionar <strong>Cadete no recibe órdenes</strong>.",
+    "Validar si el rider está pausado. Si quiere quitar pausa, derivar al SOP de desactivación.",
+    "Si no está pausado, validar si está dentro de su zona de logueo.",
+    "Si está fuera de zona, enviar <strong>/On_AOA_FueraDeZona</strong>; si está en zona, usar Contacto1 o Contacto2 según sea primer o segundo contacto."
+  ],
+  "cancela-usuario": [
+    "Seleccionar <strong>Cliente solicita cancelar</strong>.",
+    "Validar si el rider ya levantó el pedido y si está con el cliente o tuvo problema en entrega.",
+    "Revisar si el cliente cancela por errores con Pago Móvil o si contactó al local.",
+    "Confirmar por Rider to Customer; según segmento, enviar NoCancela, cancelar/rechazar o aplicar devolución si ya levantó."
+  ],
+  "codigo-entrega": [
+    "Seleccionar <strong>Verificación de identidad / Problemas con la validación del PIN</strong>.",
+    "Revisar si hay notas de CS o si el rider está en near dropoff.",
+    "Si está near dropoff, validar si contactó al usuario y si el pedido es B2C.",
+    "Enviar <strong>/On_ID_CódigoUser</strong>, <strong>/On_ID_CódigoB2C</strong>, completar o rechazar por problemas técnicos según el caso."
+  ],
+  "problema-dropoff": [
+    "Seleccionar <strong>No puede encontrar dirección del cliente</strong>.",
+    "Validar si es B2C y si el rider intentó comunicarse por chat con el usuario.",
+    "Si no intentó chat, enviar <strong>/On_UF_ChatR2C</strong>.",
+    "Si contactó al usuario, seguir alternativas: si puede entregar, continuar; si no hay datos o no puede entregar, rechazar por faltan datos de dirección y aplicar devolución."
+  ],
+  "no-encuentra-dropoff": [
+    "Identificar si el reporte es cambio de dirección, coordenadas incorrectas o no encuentra el dropoff.",
+    "Validar B2C/no B2C, recurrente, segmento y si el rider validó con el usuario.",
+    "Corregir coordenadas o dirección solo si cumple parámetros de distancia/zona.",
+    "Si no cumple, enviar volver zona, rechazar/cancelar o aplicar devolución según corresponda."
+  ],
+  "distancia-lejos": [
+    "Seleccionar motivo de distancia y validar si es distancia al local o de la orden.",
+    "Comparar contra límites: walker 1 km, bici 3.5 km, moto/auto/bici plus 6 km; currier moto/auto/bici plus 15 km.",
+    "Si no excede, enviar <strong>/On_Recorrido</strong>.",
+    "Si excede, para Chile enviar <strong>/On_DistanciaExcedida</strong> y confirmar si reasigna; para otros países reasignar por distancia."
+  ],
+  "fuera-zona": [
+    "Validar si el rider reporta fuera de zona y si es tercer contacto.",
+    "Si está dentro de zona, enviar solución de dentro de zona.",
+    "Si está fuera y es segmento A, reasignar.",
+    "Si es segmento B, enviar autogestión de zona; si es tercer contacto, rechazar."
+  ],
+  "no-preparar": [
+    "Seleccionar <strong>Local no quiere preparar la orden</strong>.",
+    "Validar si es contacto de otro rider por el mismo motivo; si lo es, rechazar por el motivo que corresponda.",
+    "Si no, llamar al local y confirmar información del rider.",
+    "Si prepara, pedir al rider que espere; si no prepara, rechazar; si está incontactable, reasignar o enviar <strong>/On_RP_PreparacionOK</strong> según segmento."
+  ],
+  "demorado": [
+    "Seleccionar <strong>Demoras en la preparación</strong>.",
+    "Validar si el rider está a menos de 150 m del pickup; si no, pedir que se dirija al pickup.",
+    "Si tiene stacking, revisar pedidos doble ya, aceptados y CPT.",
+    "Si la demora supera CPT +15, reasignar; si no supera, enviar solución de espera/autogestión o doble ya según corresponda."
+  ],
+  "chequeo-estado": [
+    "Identificar si pide número de usuario, local o punto de retiro.",
+    "Si pide número de usuario, validar si ya levantó el pedido.",
+    "Si no levantó, no brindar el número; si levantó, se puede brindar según flujo.",
+    "Dejar nota y cerrar."
+  ],
+  "no-llega-pickup": [
+    "Seleccionar <strong>Partner - Problemas accediendo a la ubicación del local</strong>.",
+    "Validar si el pedido está en estado pickup.",
+    "Si está pickup, enviar <strong>/On_IA_Pickeada</strong>.",
+    "Si no está pickup, validar recontacto; si no lo es, enviar <strong>/On_IA_DirecciónOK</strong>; si es contacto de otro rider, rechazar por local no entrega en dirección."
+  ],
+  "no-encuentra-pickup": [
+    "Validar si el 1VU coincide con Backoffice y si es contacto de otro rider.",
+    "Si está desactualizado o es contacto de otro rider por el mismo motivo, rechazar por perfil/dirección desactualizada.",
+    "Si no, llamar al local para obtener instrucciones y confirmar si está dentro de zona.",
+    "Reportar formulario si corresponde, enviar <strong>/On_UL_DirecciónOK</strong> o rechazar/cancelar según el resultado."
+  ],
+  "problemas-pos": [
+    "Seleccionar <strong>Problemas con el POS</strong> o app/equipamiento según corresponda.",
+    "Pedir evidencia clara si aplica y validar si el rider puede continuar.",
+    "Si puede resolver o completar, enviar la solución correspondiente.",
+    "Si no puede completar y corresponde, rechazar o reasignar según estado del pedido."
+  ],
+  "accidente": [
+    "Seleccionar <strong>Robo o accidente</strong> y consultar primero si requiere asistencia médica.",
+    "Si requiere asistencia, comunicar líneas de emergencia y no consultar solo por el pedido.",
+    "Si no requiere asistencia, validar si tiene pedido en curso y si lo levantó.",
+    "Según daño/robo/estado, enviar InfoAccidente/InfoRobo, reasignar vehículo, rechazar/cancelar y aplicar pausa R7 si corresponde."
+  ],
+  "pedido-danado": [
+    "Seleccionar <strong>Orden dañada o derramada</strong>.",
+    "Validar si el daño fue por accidente del rider; si sí, aplicar SOP Accidente de rider.",
+    "Si no fue accidente, validar si el rider está en dropoff.",
+    "Si no está en dropoff, enviar <strong>/On_SD_EntregaPedido</strong>, escribir nota con O.X al inicio y cerrar."
+  ],
+  "fin-pausa": [
+    "Identificar el motivo de pausa del rider.",
+    "Si es pausa verde, validar si es D2 u OCT antes de retirar.",
+    "Si es autopausado, enviar <strong>/On_EB_AutoActivación</strong>.",
+    "Si es pausa roja, validar D8, teléfono, B2X o fin de turno y enviar la solución correspondiente."
+  ],
+  "cancela-currier": [
+    "Seleccionar el motivo de cancelación del usuario para currier.",
+    "Validar si el rider está en pickup y si el usuario está incontactable o confirma cancelación.",
+    "Si el usuario confirma que recibirá, informar al rider que continúe.",
+    "Si confirma cancelación o no responde, rechazar, reasignar o enviar solución B2C según estado y segmento."
+  ],
+  "local-desconoce": [
+    "Seleccionar el motivo de local desconoce el pedido.",
+    "Validar si es primer o segundo contacto.",
+    "En primer contacto, reasignar si corresponde.",
+    "En segundo contacto, rechazar y dejar nota."
+  ],
+  "paquete-sospechoso": [
+    "Validar si el rider abrió o no abrió el paquete.",
+    "Si no abrió y reporta paquete sospechoso, rechazar y enviar la solución correspondiente.",
+    "Dejar registro claro en notas.",
+    "Cerrar el chat."
+  ],
+  "problemas-punto-retiro": [
+    "Validar si el rider está near pickup o punto de retiro.",
+    "Si no está near, pedir que se dirija al punto de retiro.",
+    "Si está near, llamar o validar con el punto de retiro.",
+    "Si continúa, informar al rider; si no continúa o está incontactable, rechazar/enviar solución según segmento."
+  ],
+  "pin-gps": [
+    "Validar si el reporte es PIN de GPS incorrecto o dirección/coordenadas.",
+    "Confirmar si el rider validó con el usuario y si cumple distancia/zona.",
+    "Si cumple, corregir PIN o coordenadas.",
+    "Si es recurrente segmento B, enviar <strong>/On_UF_SinGestión</strong>; si el pedido ya está completado, no accionar."
+  ],
+  "problemas-app": [
+    "Pedir o revisar captura clara del error de la app.",
+    "Identificar si no puede sacar foto, subir captura o finalizar por error de código/PIN.",
+    "Si corresponde, enviar solución de captura/app o completar/levantar pedido según flujo.",
+    "Dejar nota y cerrar."
+  ],
+  "no-acepta-dropoff": [
+    "Seleccionar motivo relacionado a cliente no quiere aceptar en dropoff u orden dañada/derramada.",
+    "Si hay problema de PIN/proof of delivery, aplicar el SOP correspondiente.",
+    "Si es Double Ya, validar si los pedidos llegaron separados y si se debe enviar <strong>/On_EnvioDoubleYa</strong>.",
+    "Llamar al usuario; si acepta, continuar; si no acepta o no responde, cancelar/rechazar y aplicar devolución."
+  ],
+  "usuario-frecuente": [
+    "Seleccionar <strong>Verificación de identidad</strong>.",
+    "Validar si el usuario tiene 3 o más pedidos confirmados y si es nuevo con 3 pedidos en un día.",
+    "Si es frecuente, informar/cancelar según corresponda y enviar template de frecuente.",
+    "Si no es frecuente, enviar <strong>/On_ID_NoFrecuente</strong> y confirmar si el rider continúa."
+  ],
+  "zona-roja": [
+    "Verificar notas y si es tercer rider reportando zona roja.",
+    "Validar si hubo cambio de coordenadas y si el punto reportado es pickup o entrega.",
+    "Si es pickup, enviar <strong>/On_RZ_PickupOK</strong>; si no es punto real, enviar <strong>/On_RW_ZonaEntrega</strong>.",
+    "Si corresponde zona roja real, validar país, segmento, rechazos del cliente y si levantó pedido para enviar solución, rechazar o aplicar devolución."
+  ],
+  "clicket": [
+    "Seleccionar <strong>Clicked through</strong> y validar número de pedido.",
+    "Identificar si el rider dio pickup sin levantar, levantó por error o completó por error.",
+    "Si completó por error, validar 30 minutos, estado cancelado, pausa y pedidos aceptados.",
+    "Quitar pausa/reasignar, hacer redelivery o enviar solución de recontacto/demorado/valida estado según corresponda."
+  ],
+  "outro-rider": [
+    "Seleccionar <strong>Orden levantada por otro rider</strong>.",
+    "Validar si el contacto viene transferido por bot y si el pedido tuvo near pickup de otro rider.",
+    "Si no tuvo near pickup de otro rider, reasignar por Not accepting.",
+    "Si fue completado, dividido o sí corresponde, eliminar delivery/cancelar por repartidor incontactable, dejar nota O.X y cerrar."
+  ],
+  "fuera-zona-nocurrier": [
+    "Validar si el rider desea reasignar por fuera de zona.",
+    "Comprobar si realmente amerita según ubicación/zona.",
+    "Si amerita, reasignar.",
+    "Dejar nota y cerrar."
+  ],
+  "equipamiento": [
+    "Seleccionar <strong>Problemas con el equipamiento</strong>.",
+    "Validar si el pedido ya fue levantado.",
+    "Si fue levantado, rechazar pedido, aplicar pausa R2 y enviar solución ProblemaVehículo.",
+    "Si no fue levantado, enviar PausaVehículo, dejar nota y cerrar."
+  ],
+  "courrier-punto-retiro-c2c": [
+  "Validar si es segundo contacto del rider.",
+  "Verificar si el pickup en HU coincide con BO.",
+  "Llamar al número de pickup si corresponde.",
+  "Si usuario no responde, reasignar o rechazar según segmento."
+],
+
+"courrier-dropoff-c2c": [
+  "Validar si el rider intentó contacto por chat.",
+  "Llamar al usuario y solicitar alternativa.",
+  "Si no brinda solución o está incontactable, rechazar.",
+  "Aplicar devolución si corresponde."
+],
+
+"courrier-rescate": [
+  "Reasignar por rider incontactable.",
+  "Llamar al nuevo rider asignado.",
+  "Si acepta, compartir información del rescate.",
+  "Si tercer rider falla, rechazar pedido."
+],
+
+"courrier-cancela-b2x": [
+  "Validar si el usuario realmente quiere cancelar.",
+  "Si confirma cancelación, rechazar pedido.",
+  "Si es segmento B y B2C, enviar template correspondiente.",
+  "Dejar notas y cerrar."
+],
+
+"courrier-zona-roja": [
+  "Validar si realmente es zona roja.",
+  "Confirmar pickup o dropoff.",
+  "Accionar según segmento y si el pedido fue levantado.",
+  "Aplicar devolución si corresponde."
+],
+
+"courrier-pago-qr": [
+  "Validar método QR correspondiente.",
+  "Solicitar comprobante o evidencia.",
+  "Guiar al cliente según método de pago.",
+  "Completar pedido si pago fue confirmado."
+],
+
+"courrier-punto-retiro-b2c": [
+  "Llamar al partner/punto de retiro.",
+  "Validar si preparará el pedido.",
+  "Enviar template si corresponde.",
+  "Rechazar si no puede continuar."
+],
+};
+// ============================================================
+// STORAGE HELPERS
+// ============================================================
+const STORAGE_KEY     = "peya_btn_order";
+const CASE_PREFIX     = "peya_cases_";
+const FLOW_PREFIX     = "peya_flow_";
+const CUSTOM_CATS_KEY = "peya_custom_cats";
+const CUSTOM_ITEMS_KEY= "peya_custom_items_";
+const CASE_NOTES_KEY  = "peya_notes_";
+
+function loadCustomCats(){try{return JSON.parse(localStorage.getItem(CUSTOM_CATS_KEY))||[];}catch(e){return[];}}
+function saveCustomCats(a){localStorage.setItem(CUSTOM_CATS_KEY,JSON.stringify(a));}
+function loadCustomItems(id){try{return JSON.parse(localStorage.getItem(CUSTOM_ITEMS_KEY+id))||null;}catch(e){return null;}}
+function saveCustomItems(id,items){localStorage.setItem(CUSTOM_ITEMS_KEY+id,JSON.stringify(items));}
+function loadFlow(id){try{return JSON.parse(localStorage.getItem(FLOW_PREFIX+id));}catch(e){return null;}}
+function saveFlow(id,steps){localStorage.setItem(FLOW_PREFIX+id,JSON.stringify(steps));}
+function loadNotes(k){try{return JSON.parse(localStorage.getItem(CASE_NOTES_KEY+k))||[];}catch(e){return[];}}
+function saveNotes(k,n){localStorage.setItem(CASE_NOTES_KEY+k,JSON.stringify(n));}
+function getCaseKey(secId,text){return secId+"_"+btoa(unescape(encodeURIComponent(text.substring(0,40)))).replace(/[^a-zA-Z0-9]/g,"").substring(0,20);}
+function escHtml(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function escAttr(t){return t.replace(/"/g,"&quot;");}
+
+// ============================================================
+// MERGE BASE + CUSTOM CATS
+// ============================================================
+const customCats = loadCustomCats();
+const categorias = [...categoriasBase, ...customCats];
+
+// ============================================================
+// RENDER HELPERS
+// ============================================================
+function buildFlowHtml(secId, steps){
+  if(!steps||!steps.length) return "";
+  return `<div class="flow-guide" id="flow-${secId}">
+    <div class="flow-head">
+      <div class="flow-title">Paso a paso general del flujo</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <div class="flow-pill">No currier / según caso</div>
+        <button class="btn-edit-flow" data-sec="${secId}">✏️ Editar pasos</button>
+      </div>
+    </div>
+    <div class="flow-steps" id="flow-steps-${secId}">${steps.map((p,i)=>`<div class="flow-step"><span class="flow-num">${i+1}</span><div>${p}</div></div>`).join("")}</div>
+    <div class="flow-editor" id="flow-editor-${secId}">
+      <div id="flow-inputs-${secId}">${steps.map((p,i)=>`<div class="flow-step-edit"><textarea data-idx="${i}">${p.replace(/<[^>]+>/g,"")}</textarea><button class="btn-del-step" data-idx="${i}">✕</button></div>`).join("")}</div>
+      <button class="btn-add-step" data-sec="${secId}">＋ Agregar paso</button>
+      <div class="flow-editor-actions">
+        <button class="btn-save-flow" data-sec="${secId}">✅ Guardar pasos</button>
+        <button class="btn-cancel-flow" data-sec="${secId}">Cancelar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildCaseBlockHtml(secId, item){
+  const key = getCaseKey(secId, item);
+  const notes = loadNotes(key);
+  const notesHtml = notes.map((n,i)=>`
+    <div class="case-note-item" data-ni="${i}">
+      <div class="case-note-text">${escHtml(n)}</div>
+      <div class="case-note-actions">
+        <button class="btn-note-edit" data-key="${key}" data-ni="${i}" title="Editar">✏️</button>
+        <button class="btn-note-del" data-key="${key}" data-ni="${i}" title="Borrar">🗑️</button>
+      </div>
+    </div>`).join("");
+  return `<div class="case-block${notes.length?" has-notes":""}" draggable="false" data-text="${escAttr(item)}" data-cat="${secId}" data-ckey="${key}">
+    <div class="case-text">${escHtml(item)}</div>
+    <span class="copy-tag">📋 copiar</span>
+    <span class="copied-msg">✓ copiado</span>
+    <div class="case-block-actions">
+      <button class="btn-case-edit-text" data-sec="${secId}" data-text="${escAttr(item)}">✏️ Editar texto</button>
+      <button class="btn-case-del" data-sec="${secId}" data-text="${escAttr(item)}">🗑️ Eliminar</button>
+    </div>
+    <div class="case-notes-area">
+      <div class="notes-list" data-key="${key}">${notesHtml}</div>
+      <button class="btn-add-case-note" data-key="${key}">＋ Agregar nota</button>
+      <div class="case-note-add-bar" id="note-bar-${key}">
+        <textarea class="case-note-input" id="note-input-${key}" placeholder="Tu nota..."></textarea>
+        <button class="btn-note-save" data-key="${key}">Guardar</button>
+        <button class="btn-note-cancel" data-key="${key}">Cancelar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildCasesHtml(secId, grupos, customItemsOverride){
+  let html=`<div class="case-edit-bar">
+    <button class="btn-case-edit" data-sec="${secId}">✏️ Reordenar casos</button>
+    <button class="btn-add-case" data-sec="${secId}">＋ Agregar caso</button>
+    <span class="case-edit-hint">Arrastrá para reordenar · Se guarda automáticamente</span>
+    <button class="btn-case-reset" data-sec="${secId}">↺ Restablecer orden</button>
+  </div>
+  <div class="add-case-form" id="add-case-form-${secId}">
+    <label>Texto del nuevo caso (autocopiable):</label>
+    <textarea id="add-case-input-${secId}" placeholder="xxx//rider indica...//RS"></textarea>
+    <div class="add-case-form-actions">
+      <button class="btn-save-case" data-sec="${secId}">Agregar</button>
+      <button class="btn-cancel-case" data-sec="${secId}">Cancelar</button>
+    </div>
+  </div>
+  <div class="cases-container" id="cases-${secId}">`;
+  if(customItemsOverride){
+    customItemsOverride.forEach(item=>{html+=buildCaseBlockHtml(secId,item);});
+  } else {
+    grupos.forEach(g=>{
+      if(g.label) html+=`<div class="group-label" data-group="${g.label}">${g.label}</div>`;
+      g.items.forEach(item=>{html+=buildCaseBlockHtml(secId,item);});
+    });
+  }
+  html+=`</div>`;
+  return html;
+}
+
+function buildSection(cat){
+  const savedFlow = loadFlow(cat.id);
+  const baseFlow = pasosFlujo[cat.id];
+  const activeFlow = savedFlow||baseFlow;
+  const customItems = loadCustomItems(cat.id);
+  const isCustom = !categoriasBase.find(c=>c.id===cat.id);
+  let html=`<div class="section-title">${cat.label}</div>`;
+  html+=`<span class="badge badge-${cat.badge}">${badgeLabels[cat.badge]||cat.badge}</span>`;
+  html+=`<div class="section-action-bar">
+    <button class="btn-edit-section" data-sec="${cat.id}">✏️ Editar sección</button>
+    <button class="btn-del-section${isCustom?" visible":""}" data-sec="${cat.id}">🗑️ Eliminar sección</button>
+  </div>`;
+  if(cat.notas) html+=`<div class="info-note">${cat.notas}</div>`;
+  if(activeFlow) html+=buildFlowHtml(cat.id, activeFlow);
+  html+=buildCasesHtml(cat.id, cat.grupos, customItems);
+  return html;
+}
+
+// ============================================================
+// INITIAL RENDER
+// ============================================================
+const nav = document.getElementById("nav");
+const content = document.getElementById("content");
+
+categorias.forEach(cat=>{
+  const btn=document.createElement("button");
+  btn.textContent=cat.label; btn.dataset.id=cat.id;
+  btn.classList.add(`nav-${cat.badge}`);
+  nav.appendChild(btn);
+  const sec=document.createElement("div");
+  sec.className="section"; sec.id="sec-"+cat.id;
+  sec.innerHTML=buildSection(cat);
+  content.appendChild(sec);
+});
+
+// ============================================================
+// NAV DRAG & DROP
+// ============================================================
+let editMode=false,dragSrc=null,touchDragBtn=null,touchClone=null,touchOffX=0,touchOffY=0;
+
+function saveOrder(){localStorage.setItem(STORAGE_KEY,JSON.stringify([...nav.querySelectorAll("button")].map(b=>b.dataset.id)));}
+function loadOrder(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(!saved||!Array.isArray(saved))return;
+    saved.forEach(id=>{const b=nav.querySelector(`button[data-id="${id}"]`);if(b)nav.appendChild(b);});
+  }catch(e){}
+}
+function setEditMode(on){
+  editMode=on; nav.classList.toggle("edit-mode",on);
+  btnEditMode.classList.toggle("on",on);
+  btnEditMode.textContent=on?"✅ Listo":"✏️ Reordenar botones";
+  document.getElementById("editHint").classList.toggle("visible",on);
+  document.getElementById("btnReset").classList.toggle("visible",on);
+  nav.querySelectorAll("button").forEach(b=>b.draggable=on);
+}
+nav.addEventListener("dragstart",e=>{if(!editMode)return;dragSrc=e.target.closest("button");if(!dragSrc)return;dragSrc.classList.add("dragging");e.dataTransfer.effectAllowed="move";});
+nav.addEventListener("dragend",()=>{document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("dragging","drag-over"));});
+nav.addEventListener("dragover",e=>{if(!editMode)return;e.preventDefault();const t=e.target.closest("button");if(!t||t===dragSrc)return;document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("drag-over"));t.classList.add("drag-over");});
+nav.addEventListener("drop",e=>{if(!editMode)return;e.preventDefault();const t=e.target.closest("button");if(!t||t===dragSrc||!dragSrc)return;t.classList.remove("drag-over");const a=[...nav.querySelectorAll("button")],si=a.indexOf(dragSrc),ti=a.indexOf(t);if(si<ti)nav.insertBefore(dragSrc,t.nextSibling);else nav.insertBefore(dragSrc,t);saveOrder();});
+nav.addEventListener("touchstart",e=>{if(!editMode)return;const b=e.target.closest("button");if(!b)return;touchDragBtn=b;const touch=e.touches[0],rect=b.getBoundingClientRect();touchOffX=touch.clientX-rect.left;touchOffY=touch.clientY-rect.top;touchClone=b.cloneNode(true);touchClone.style.cssText=`position:fixed;z-index:9999;pointer-events:none;opacity:.85;width:${rect.width}px;left:${touch.clientX-touchOffX}px;top:${touch.clientY-touchOffY}px;transform:scale(1.08);box-shadow:0 6px 20px #0003;transition:none;`;document.body.appendChild(touchClone);b.classList.add("dragging");},{passive:true});
+nav.addEventListener("touchmove",e=>{if(!editMode||!touchDragBtn||!touchClone)return;e.preventDefault();const touch=e.touches[0];touchClone.style.left=(touch.clientX-touchOffX)+"px";touchClone.style.top=(touch.clientY-touchOffY)+"px";touchClone.style.display="none";const el=document.elementFromPoint(touch.clientX,touch.clientY);touchClone.style.display="";const t=el&&el.closest(".nav button");document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("drag-over"));if(t&&t!==touchDragBtn)t.classList.add("drag-over");},{passive:false});
+nav.addEventListener("touchend",e=>{if(!editMode||!touchDragBtn)return;const touch=e.changedTouches[0];if(touchClone){touchClone.remove();touchClone=null;}touchDragBtn.classList.remove("dragging");const el=document.elementFromPoint(touch.clientX,touch.clientY);const t=el&&el.closest(".nav button");document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("drag-over"));if(t&&t!==touchDragBtn){const a=[...nav.querySelectorAll("button")],si=a.indexOf(touchDragBtn),ti=a.indexOf(t);if(si<ti)nav.insertBefore(touchDragBtn,t.nextSibling);else nav.insertBefore(touchDragBtn,t);saveOrder();}touchDragBtn=null;},{passive:true});
+
+const btnEditMode=document.getElementById("btnEditMode");
+btnEditMode.addEventListener("click",()=>setEditMode(!editMode));
+document.getElementById("btnReset").addEventListener("click",()=>{if(!confirm("¿Restablecer el orden original de los botones?"))return;localStorage.removeItem(STORAGE_KEY);categorias.forEach(cat=>{const b=nav.querySelector(`button[data-id="${cat.id}"]`);if(b)nav.appendChild(b);});});
+nav.addEventListener("click",e=>{if(editMode)return;const b=e.target.closest("button");if(b)showSection(b.dataset.id);});
+function showSection(id){document.querySelectorAll(".section").forEach(s=>s.classList.remove("visible"));document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));const ts=document.getElementById("sec-"+id);const tb=document.querySelector(`button[data-id="${id}"]`);if(ts&&tb){ts.classList.add("visible");tb.classList.add("active");}}
+
+// ============================================================
+// ADD/EDIT SECTION MODAL
+// ============================================================
+let editingSectionId=null;
+document.getElementById("btnAddNav").addEventListener("click",()=>{
+  editingSectionId=null;
+  document.getElementById("modalSectionTitle").textContent="➕ Agregar nuevo caso";
+  document.getElementById("modalSectionLabel").value="";
+  document.getElementById("modalSectionBadge").value="nocurrier";
+  document.getElementById("modalSectionNotas").value="";
+  document.getElementById("modalSection").classList.add("visible");
+});
+document.getElementById("btnModalSectionCancel").addEventListener("click",()=>document.getElementById("modalSection").classList.remove("visible"));
+document.getElementById("btnModalSectionSave").addEventListener("click",()=>{
+  const label=document.getElementById("modalSectionLabel").value.trim();
+  if(!label){alert("Ingresá un nombre para el caso.");return;}
+  const badge=document.getElementById("modalSectionBadge").value;
+  const notas=document.getElementById("modalSectionNotas").value.trim();
+  if(editingSectionId){
+    const cat=categorias.find(c=>c.id===editingSectionId);
+    if(cat){
+      cat.label=label;cat.badge=badge;if(notas)cat.notas=notas;else delete cat.notas;
+      const btn=nav.querySelector(`button[data-id="${editingSectionId}"]`);
+      if(btn){btn.textContent=label;btn.className=`nav-${badge}`;}
+      const sec=document.getElementById("sec-"+editingSectionId);
+      if(sec){
+        const t=sec.querySelector(".section-title");if(t)t.textContent=label;
+        const b=sec.querySelector(".badge");if(b){b.className=`badge badge-${badge}`;b.textContent=badgeLabels[badge]||badge;}
+        let infoNote=sec.querySelector(".info-note");
+        if(notas&&!infoNote){const n=document.createElement("div");n.className="info-note";n.innerHTML=notas;const flow=sec.querySelector(".flow-guide")||sec.querySelector(".case-edit-bar");sec.insertBefore(n,flow);}
+        else if(notas&&infoNote)infoNote.innerHTML=notas;
+        else if(!notas&&infoNote)infoNote.remove();
+      }
+      const customs=loadCustomCats();const ci=customs.findIndex(c=>c.id===editingSectionId);
+      if(ci>=0){customs[ci].label=label;customs[ci].badge=badge;customs[ci].notas=notas||undefined;saveCustomCats(customs);}
+    }
+  } else {
+    const id="custom-"+Date.now();
+    const newCat={id,label,badge,notas:notas||undefined,grupos:[{label:"",items:[]}]};
+    categorias.push(newCat);
+    const customs=loadCustomCats();customs.push(newCat);saveCustomCats(customs);
+    const btn=document.createElement("button");btn.textContent=label;btn.dataset.id=id;btn.classList.add(`nav-${badge}`);nav.appendChild(btn);
+    const sec=document.createElement("div");sec.className="section";sec.id="sec-"+id;sec.innerHTML=buildSection(newCat);content.appendChild(sec);
+    showSection(id);
+  }
+  document.getElementById("modalSection").classList.remove("visible");
+});
+
+// ============================================================
+// CONTENT CLICK DELEGATION
+// ============================================================
+content.addEventListener("click",e=>{
+  // Edit section btn
+  const editSecBtn=e.target.closest(".btn-edit-section");
+  if(editSecBtn){
+    const secId=editSecBtn.dataset.sec;const cat=categorias.find(c=>c.id===secId);if(!cat)return;
+    editingSectionId=secId;
+    document.getElementById("modalSectionTitle").textContent="✏️ Editar sección";
+    document.getElementById("modalSectionLabel").value=cat.label;
+    document.getElementById("modalSectionBadge").value=cat.badge;
+    document.getElementById("modalSectionNotas").value=cat.notas?cat.notas.replace(/<[^>]+>/g,""):"";
+    document.getElementById("modalSection").classList.add("visible");return;
+  }
+  // Delete section
+  const delSecBtn=e.target.closest(".btn-del-section");
+  if(delSecBtn){
+    const secId=delSecBtn.dataset.sec;if(!confirm("¿Eliminar esta sección?"))return;
+    const idx=categorias.findIndex(c=>c.id===secId);if(idx>=0)categorias.splice(idx,1);
+    saveCustomCats(loadCustomCats().filter(c=>c.id!==secId));
+    const b=nav.querySelector(`button[data-id="${secId}"]`);if(b)b.remove();
+    const s=document.getElementById("sec-"+secId);if(s)s.remove();
+    const fb=nav.querySelector("button");if(fb)showSection(fb.dataset.id);return;
+  }
+  // Edit flow
+  const editFlowBtn=e.target.closest(".btn-edit-flow");
+  if(editFlowBtn){
+    const secId=editFlowBtn.dataset.sec;
+    const editor=document.getElementById("flow-editor-"+secId);
+    const stepsEl=document.getElementById("flow-steps-"+secId);
+    if(editor){editor.classList.add("visible");stepsEl.style.display="none";}return;
+  }
+  // Delete flow step
+  if(e.target.closest(".btn-del-step")){e.target.closest(".flow-step-edit").remove();return;}
+  // Add flow step
+  const addStepBtn=e.target.closest(".btn-add-step");
+  if(addStepBtn){
+    const secId=addStepBtn.dataset.sec;const inputs=document.getElementById("flow-inputs-"+secId);
+    const div=document.createElement("div");div.className="flow-step-edit";
+    div.innerHTML=`<textarea placeholder="Nuevo paso..."></textarea><button class="btn-del-step">✕</button>`;
+    inputs.appendChild(div);div.querySelector("textarea").focus();return;
+  }
+  // Save flow
+  const saveFlowBtn=e.target.closest(".btn-save-flow");
+  if(saveFlowBtn){
+    const secId=saveFlowBtn.dataset.sec;
+    const inputs=document.getElementById("flow-inputs-"+secId);
+    const steps=[...inputs.querySelectorAll("textarea")].map(t=>t.value.trim()).filter(Boolean);
+    saveFlow(secId,steps);
+    const stepsEl=document.getElementById("flow-steps-"+secId);
+    stepsEl.innerHTML=steps.map((p,i)=>`<div class="flow-step"><span class="flow-num">${i+1}</span><div>${escHtml(p)}</div></div>`).join("");
+    stepsEl.style.display="";document.getElementById("flow-editor-"+secId).classList.remove("visible");return;
+  }
+  // Cancel flow
+  const cancelFlowBtn=e.target.closest(".btn-cancel-flow");
+  if(cancelFlowBtn){
+    const secId=cancelFlowBtn.dataset.sec;
+    document.getElementById("flow-steps-"+secId).style.display="";
+    document.getElementById("flow-editor-"+secId).classList.remove("visible");
+    const steps=loadFlow(secId)||pasosFlujo[secId]||[];
+    document.getElementById("flow-inputs-"+secId).innerHTML=steps.map((p,i)=>`<div class="flow-step-edit"><textarea data-idx="${i}">${p.replace(/<[^>]+>/g,"")}</textarea><button class="btn-del-step" data-idx="${i}">✕</button></div>`).join("");
+    return;
+  }
+  // Case edit mode toggle
+  const editCaseBtn=e.target.closest(".btn-case-edit");
+  if(editCaseBtn){const secId=editCaseBtn.dataset.sec;setCaseEditMode(secId,!editCaseBtn.classList.contains("on"));return;}
+  // Case order reset
+  const resetCaseBtn=e.target.closest(".btn-case-reset");
+  if(resetCaseBtn){const secId=resetCaseBtn.dataset.sec;if(!confirm("¿Restablecer el orden original de los casos?"))return;localStorage.removeItem(CASE_PREFIX+secId);resetCaseOrder(secId);return;}
+  // Add case toggle
+  const addCaseBtn=e.target.closest(".btn-add-case");
+  if(addCaseBtn){const secId=addCaseBtn.dataset.sec;const form=document.getElementById("add-case-form-"+secId);form.classList.toggle("visible");if(form.classList.contains("visible"))document.getElementById("add-case-input-"+secId).focus();return;}
+  // Save new case
+  const saveCaseBtn=e.target.closest(".btn-save-case");
+  if(saveCaseBtn){const secId=saveCaseBtn.dataset.sec;const input=document.getElementById("add-case-input-"+secId);const text=input.value.trim();if(!text){alert("Ingresá el texto del caso.");return;}addCaseToSection(secId,text);input.value="";document.getElementById("add-case-form-"+secId).classList.remove("visible");return;}
+  // Cancel new case
+  const cancelCaseBtn=e.target.closest(".btn-cancel-case");
+  if(cancelCaseBtn){document.getElementById("add-case-form-"+cancelCaseBtn.dataset.sec).classList.remove("visible");return;}
+  // Edit case text
+  const editCaseTextBtn=e.target.closest(".btn-case-edit-text");
+  if(editCaseTextBtn){e.stopPropagation();pendingCaseEdit={secId:editCaseTextBtn.dataset.sec,oldText:editCaseTextBtn.dataset.text};document.getElementById("modalCaseText").value=editCaseTextBtn.dataset.text;document.getElementById("modalCaseEdit").classList.add("visible");return;}
+  // Delete case
+  const delCaseBtn=e.target.closest(".btn-case-del");
+  if(delCaseBtn){e.stopPropagation();if(!confirm("¿Eliminar este caso?"))return;const secId=delCaseBtn.dataset.sec;const text=delCaseBtn.dataset.text;const block=[...document.querySelectorAll(`#cases-${secId} .case-block`)].find(b=>b.dataset.text===text);if(block)block.remove();persistCaseItems(secId);return;}
+  // Add note
+  const addNoteBtn=e.target.closest(".btn-add-case-note");
+  if(addNoteBtn){e.stopPropagation();const key=addNoteBtn.dataset.key;const bar=document.getElementById("note-bar-"+key);if(bar){bar.classList.toggle("visible");if(bar.classList.contains("visible"))document.getElementById("note-input-"+key).focus();}return;}
+  // Save note
+  const saveNoteBtn=e.target.closest(".btn-note-save");
+  if(saveNoteBtn){e.stopPropagation();const key=saveNoteBtn.dataset.key;const input=document.getElementById("note-input-"+key);const text=input.value.trim();if(!text)return;const notes=loadNotes(key);notes.push(text);saveNotes(key,notes);input.value="";const bar=document.getElementById("note-bar-"+key);if(bar)bar.classList.remove("visible");refreshNotesArea(key,notes);return;}
+  // Cancel note
+  const cancelNoteBtn=e.target.closest(".btn-note-cancel");
+  if(cancelNoteBtn){e.stopPropagation();const bar=document.getElementById("note-bar-"+cancelNoteBtn.dataset.key);if(bar)bar.classList.remove("visible");return;}
+  // Edit note
+  const editNoteBtn=e.target.closest(".btn-note-edit");
+  if(editNoteBtn){e.stopPropagation();pendingNoteEdit={key:editNoteBtn.dataset.key,ni:parseInt(editNoteBtn.dataset.ni)};document.getElementById("modalNoteText").value=loadNotes(pendingNoteEdit.key)[pendingNoteEdit.ni]||"";document.getElementById("modalNoteEdit").classList.add("visible");return;}
+  // Delete note
+  const delNoteBtn=e.target.closest(".btn-note-del");
+  if(delNoteBtn){e.stopPropagation();const key=delNoteBtn.dataset.key;const ni=parseInt(delNoteBtn.dataset.ni);const notes=loadNotes(key);notes.splice(ni,1);saveNotes(key,notes);refreshNotesArea(key,notes);return;}
+  // Copy case
+  const block=e.target.closest(".case-block");
+  if(block){
+    const sec=block.closest(".section");if(sec&&sec.classList.contains("case-edit-mode"))return;
+    if(e.target.closest(".case-notes-area")||e.target.closest(".case-block-actions"))return;
+    navigator.clipboard.writeText(block.dataset.text).then(()=>{const msg=block.querySelector(".copied-msg");msg.style.display="block";setTimeout(()=>{msg.style.display="none";},1500);});
+  }
+});
+
+// ============================================================
+// MODALS: CASE EDIT & NOTE EDIT
+// ============================================================
+let pendingCaseEdit=null,pendingNoteEdit=null;
+document.getElementById("btnModalCaseCancel").addEventListener("click",()=>{document.getElementById("modalCaseEdit").classList.remove("visible");pendingCaseEdit=null;});
+document.getElementById("btnModalCaseSave").addEventListener("click",()=>{
+  if(!pendingCaseEdit)return;
+  const newText=document.getElementById("modalCaseText").value.trim();if(!newText){alert("El texto no puede estar vacío.");return;}
+  const{secId,oldText}=pendingCaseEdit;
+  const block=[...document.querySelectorAll(`#cases-${secId} .case-block`)].find(b=>b.dataset.text===oldText);
+  if(block){
+    block.dataset.text=newText;block.querySelector(".case-text").innerHTML=escHtml(newText);
+    const etBtn=block.querySelector(".btn-case-edit-text");if(etBtn)etBtn.dataset.text=newText;
+    const dtBtn=block.querySelector(".btn-case-del");if(dtBtn)dtBtn.dataset.text=newText;
+  }
+  persistCaseItems(secId);document.getElementById("modalCaseEdit").classList.remove("visible");pendingCaseEdit=null;
+});
+document.getElementById("btnModalNoteCancel").addEventListener("click",()=>{document.getElementById("modalNoteEdit").classList.remove("visible");pendingNoteEdit=null;});
+document.getElementById("btnModalNoteSave").addEventListener("click",()=>{
+  if(!pendingNoteEdit)return;
+  const newText=document.getElementById("modalNoteText").value.trim();if(!newText){alert("La nota no puede estar vacía.");return;}
+  const{key,ni}=pendingNoteEdit;const notes=loadNotes(key);notes[ni]=newText;saveNotes(key,notes);refreshNotesArea(key,notes);
+  document.getElementById("modalNoteEdit").classList.remove("visible");pendingNoteEdit=null;
+});
+["modalSection","modalCaseEdit","modalNoteEdit"].forEach(id=>{document.getElementById(id).addEventListener("click",e=>{if(e.target===document.getElementById(id))document.getElementById(id).classList.remove("visible");});});
+
+// ============================================================
+// NOTES REFRESH
+// ============================================================
+function refreshNotesArea(key,notes){
+  const list=document.querySelector(`.notes-list[data-key="${key}"]`);if(!list)return;
+  list.innerHTML=notes.map((n,i)=>`<div class="case-note-item" data-ni="${i}"><div class="case-note-text">${escHtml(n)}</div><div class="case-note-actions"><button class="btn-note-edit" data-key="${key}" data-ni="${i}" title="Editar">✏️</button><button class="btn-note-del" data-key="${key}" data-ni="${i}" title="Borrar">🗑️</button></div></div>`).join("");
+  const block=list.closest(".case-block");if(block)block.classList.toggle("has-notes",notes.length>0);
+}
+
+// ============================================================
+// ADD CASE
+// ============================================================
+function addCaseToSection(secId,text){
+  const container=document.getElementById("cases-"+secId);if(!container)return;
+  container.insertAdjacentHTML("beforeend",buildCaseBlockHtml(secId,text));persistCaseItems(secId);
+}
+function persistCaseItems(secId){
+  const container=document.getElementById("cases-"+secId);if(!container)return;
+  saveCustomItems(secId,[...container.querySelectorAll(".case-block")].map(b=>b.dataset.text));
+}
+
+// ============================================================
+// CASE DRAG & DROP (reorder)
+// ============================================================
+let caseEditSec=null,caseDragSrc=null,caseTouchSrc=null,caseTouchClone=null,caseTouchOffX=0,caseTouchOffY=0;
+
+function saveCaseOrder(secId){const c=document.getElementById("cases-"+secId);if(!c)return;localStorage.setItem(CASE_PREFIX+secId,JSON.stringify([...c.querySelectorAll(".case-block")].map(b=>b.dataset.text)));}
+function loadCaseOrder(secId){
+  try{
+    const saved=JSON.parse(localStorage.getItem(CASE_PREFIX+secId));if(!saved||!Array.isArray(saved))return;
+    const c=document.getElementById("cases-"+secId);if(!c)return;
+    saved.forEach(text=>{const b=[...c.querySelectorAll(".case-block")].find(b=>b.dataset.text===text);if(b)c.appendChild(b);});
+  }catch(e){}
+}
+function resetCaseOrder(secId){
+  const cat=categorias.find(c=>c.id===secId);if(!cat)return;
+  const container=document.getElementById("cases-"+secId);if(!container)return;
+  const ci=loadCustomItems(secId);
+  if(ci){container.innerHTML=ci.map(item=>buildCaseBlockHtml(secId,item)).join("");}
+  else{container.innerHTML="";cat.grupos.forEach(g=>{if(g.label)container.insertAdjacentHTML("beforeend",`<div class="group-label">${g.label}</div>`);g.items.forEach(item=>container.insertAdjacentHTML("beforeend",buildCaseBlockHtml(secId,item)));});}
+  if(caseEditSec===secId)container.querySelectorAll(".case-block").forEach(b=>b.draggable=true);
+}
+function setCaseEditMode(secId,on){
+  if(caseEditSec&&caseEditSec!==secId)setCaseEditMode(caseEditSec,false);
+  caseEditSec=on?secId:null;
+  const sec=document.getElementById("sec-"+secId);if(!sec)return;
+  sec.classList.toggle("case-edit-mode",on);
+  const btn=sec.querySelector(".btn-case-edit");const hint=sec.querySelector(".case-edit-hint");const rb=sec.querySelector(".btn-case-reset");
+  if(btn){btn.classList.toggle("on",on);btn.textContent=on?"✅ Listo":"✏️ Reordenar casos";}
+  if(hint)hint.classList.toggle("visible",on);if(rb)rb.classList.toggle("visible",on);
+  sec.querySelectorAll(".case-block").forEach(b=>b.draggable=on);
+}
+content.addEventListener("dragstart",e=>{const b=e.target.closest(".case-block");if(!b||!b.draggable)return;caseDragSrc=b;b.classList.add("case-dragging");e.dataTransfer.effectAllowed="move";});
+content.addEventListener("dragend",()=>{document.querySelectorAll(".case-block").forEach(b=>b.classList.remove("case-dragging","case-drag-over"));caseDragSrc=null;});
+content.addEventListener("dragover",e=>{e.preventDefault();const t=e.target.closest(".case-block");if(!t||t===caseDragSrc)return;document.querySelectorAll(".case-block").forEach(b=>b.classList.remove("case-drag-over"));t.classList.add("case-drag-over");});
+content.addEventListener("drop",e=>{e.preventDefault();const t=e.target.closest(".case-block");if(!t||t===caseDragSrc||!caseDragSrc)return;t.classList.remove("case-drag-over");const c=t.closest(".cases-container"),a=[...c.querySelectorAll(".case-block")],si=a.indexOf(caseDragSrc),ti=a.indexOf(t);if(si<ti)c.insertBefore(caseDragSrc,t.nextSibling);else c.insertBefore(caseDragSrc,t);saveCaseOrder(caseDragSrc.dataset.cat);persistCaseItems(caseDragSrc.dataset.cat);});
+content.addEventListener("touchstart",e=>{const b=e.target.closest(".case-block");if(!b||!b.draggable)return;caseTouchSrc=b;const touch=e.touches[0],rect=b.getBoundingClientRect();caseTouchOffX=touch.clientX-rect.left;caseTouchOffY=touch.clientY-rect.top;caseTouchClone=b.cloneNode(true);caseTouchClone.style.cssText=`position:fixed;z-index:9999;pointer-events:none;opacity:.85;width:${rect.width}px;left:${touch.clientX-caseTouchOffX}px;top:${touch.clientY-caseTouchOffY}px;transform:scale(1.05);box-shadow:0 6px 20px #0003;transition:none;border-radius:8px;background:white;border:1.5px solid #ff6900;`;document.body.appendChild(caseTouchClone);b.classList.add("case-dragging");},{passive:true});
+content.addEventListener("touchmove",e=>{if(!caseTouchSrc||!caseTouchClone)return;e.preventDefault();const touch=e.touches[0];caseTouchClone.style.left=(touch.clientX-caseTouchOffX)+"px";caseTouchClone.style.top=(touch.clientY-caseTouchOffY)+"px";caseTouchClone.style.display="none";const el=document.elementFromPoint(touch.clientX,touch.clientY);caseTouchClone.style.display="";const t=el&&el.closest(".case-block");document.querySelectorAll(".case-block").forEach(b=>b.classList.remove("case-drag-over"));if(t&&t!==caseTouchSrc)t.classList.add("case-drag-over");},{passive:false});
+content.addEventListener("touchend",e=>{if(!caseTouchSrc)return;const touch=e.changedTouches[0];if(caseTouchClone){caseTouchClone.remove();caseTouchClone=null;}caseTouchSrc.classList.remove("case-dragging");const el=document.elementFromPoint(touch.clientX,touch.clientY);const t=el&&el.closest(".case-block");document.querySelectorAll(".case-block").forEach(b=>b.classList.remove("case-drag-over"));if(t&&t!==caseTouchSrc){const c=t.closest(".cases-container"),a=[...c.querySelectorAll(".case-block")],si=a.indexOf(caseTouchSrc),ti=a.indexOf(t);if(si<ti)c.insertBefore(caseTouchSrc,t.nextSibling);else c.insertBefore(caseTouchSrc,t);saveCaseOrder(caseTouchSrc.dataset.cat);persistCaseItems(caseTouchSrc.dataset.cat);}caseTouchSrc=null;},{passive:true});
+
+// ============================================================
+// INIT
+// ============================================================
+categorias.forEach(cat=>loadCaseOrder(cat.id));
+loadOrder();
+const firstBtn=nav.querySelector("button");
+showSection(firstBtn?firstBtn.dataset.id:"gran-tamaño");
+</script>
+</body>
+</html>
